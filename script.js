@@ -74,7 +74,7 @@ function renderMenu() {
     if (currentCat === '5') {
         const guarnis = allData.filter(item => item.id.toString().startsWith('6') && item.id.toString().length === 4 && item.activa === 'SI');
         if (guarnis.length > 0) {
-            const guarniTitles = { ES: 'Guarniciones', EN: 'Sides', DE: 'Beilagen', FR: 'Garnitures', IT: 'Contorni' };
+            const guarniTitles = { ES: 'Guarniciones', EN: 'Side Dishes', DE: 'Beilagen', FR: 'Garnitures', IT: 'Contorni' };
             const titleText = guarniTitles[currentLang] || guarniTitles['ES'];
             grid.innerHTML += `<h3 class="sub-category-title">${titleText}</h3>`;
             guarnis.forEach(g => grid.innerHTML += generateItemHtml(g, true));
