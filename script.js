@@ -74,7 +74,9 @@ function renderMenu() {
     if (currentCat === '5') {
         const guarnis = allData.filter(item => item.id.toString().startsWith('6') && item.id.toString().length === 4 && item.activa === 'SI');
         if (guarnis.length > 0) {
-            grid.innerHTML += `<h3 class="sub-category-title">Guarniciones</h3>`;
+            const guarniTitles = { ES: 'Guarniciones', EN: 'Sides', DE: 'Beilagen', FR: 'Garnitures', IT: 'Contorni' };
+            const titleText = guarniTitles[currentLang] || guarniTitles['ES'];
+            grid.innerHTML += `<h3 class="sub-category-title">${titleText}</h3>`;
             guarnis.forEach(g => grid.innerHTML += generateItemHtml(g, true));
         }
     }
@@ -90,9 +92,6 @@ function generateItemHtml(item, isGuarni = false) {
     const pName = item[`nombre_${currentLang.toLowerCase()}`] || item.nombre_es;
     const sName = currentLang !== 'ES' ? item.nombre_es : '';
     
-    // EXCEPCIÓN IMPLEMENTADA: 
-    // Si es guarnición e ID < 6100 -> Sin precio.
-    // En cualquier otro caso (incluida ID 6100+) -> Muestra precio si es mayor a 0.
     const price = (isGuarni && parseInt(item.id) < 6100) ? '' : (parseFloat(item.precio) > 0 ? `${parseFloat(item.precio).toFixed(2)}€` : '');
     
     const alergenos = item.alergenos.map(a => `<img src="imagenes/alergenos/${a}.webp" onerror="this.style.display='none'">`).join('');
