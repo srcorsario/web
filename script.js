@@ -23,8 +23,16 @@ async function init() {
         const csvText = await response.text();
         allData = parseCSV(csvText);
         if (allData.length > 0) {
+            // SELECCIÓN AUTOMÁTICA DE IDIOMA
+            const userLang = (navigator.language || navigator.userLanguage).split('-')[0].toUpperCase();
+            const supportedLangs = ['ES', 'EN', 'DE', 'FR', 'IT'];
+            currentLang = supportedLangs.includes(userLang) ? userLang : 'EN';
+
             renderCategories();
             renderMenu();
+
+            // Sincronizar visualmente el botón del idioma seleccionado
+            document.querySelectorAll('#language-selector button').forEach(b => b.classList.toggle('active', b.id === `btn-${currentLang}`));
         }
     } catch (e) { console.error("Error:", e); }
 }
