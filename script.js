@@ -15,7 +15,7 @@ const categoriesList = [
     { id: '9', ES: 'Café', EN: 'Coffee', DE: 'Kaffee', FR: 'Café', IT: 'Caffè' },
     { id: '10', ES: 'Bebidas', EN: 'Drinks', DE: 'Getränke', FR: 'Boissons', IT: 'Bibite' },
     { id: '11', ES: 'Cervezas', EN: 'Beers', DE: 'Biere', FR: 'Bières', IT: 'Birre' },
-    // NUEVAS CATEGORÍAS DE VINOS
+    // CATEGORÍAS DE VINOS
     { id: '131', ES: 'Vinos Blancos', EN: 'White Wines', DE: 'Weissweine', FR: 'Vins Blancs', IT: 'Vini Bianchi' },
     { id: '132', ES: 'Vinos Rosados', EN: 'Rosé Wines', DE: 'Roséweine', FR: 'Vins Rosés', IT: 'Vini Rosati' },
     { id: '133', ES: 'Vinos Tintos', EN: 'Red Wines', DE: 'Rotweine', FR: 'Vins Rouges', IT: 'Vini Rossi' },
@@ -76,12 +76,32 @@ function renderMenu() {
 
     const filtered = allData.filter(item => {
         const id = item.id.toString();
-        // Lógica de filtrado adaptada para soportar prefijos de 3 dígitos (vinos) y 1-2 dígitos (comida)
         const match = id.startsWith(currentCat);
         return match && item.activa === 'SI' && (id % 1000 !== 0);
     });
 
-    filtered.forEach(item => grid.innerHTML += generateItemHtml(item));
+    // Títulos de sección para vinos
+    const tierraTitles = { ES: 'De Nuestra Tierra', EN: 'From Our Land', DE: 'Aus unserer Region', FR: 'De Notre Terre', IT: 'Dalla Nostra Terra' };
+    let tierraAdded = false;
+    let otrosVinosAdded = false;
+
+    filtered.forEach(item => {
+        const idNum = parseInt(item.id);
+        const subId = idNum % 100; // Obtiene los últimos dos dígitos (00-99)
+
+        // Si es una categoría de vino y el ID está entre 00 y 29, ponemos el título de "Nuestra Tierra"
+        if (currentCat.startsWith('13') && subId >= 0 && subId <= 29 && !tierraAdded) {
+            grid.innerHTML += `<h3 class="sub-category-title">${tierraTitles[currentLang]}</h3>`;
+            tierraAdded = true;
+        } 
+        // Si ya pasamos a los vinos de fuera (ID > 29), podríamos poner un separador opcional o simplemente dejar que sigan
+        else if (currentCat.startsWith('13') && subId > 29 && !otrosVinosAdded && tierraAdded) {
+            grid.innerHTML += `<hr class="section-divider">`; // Línea divisoria opcional
+            otrosVinosAdded = true;
+        }
+
+        grid.innerHTML += generateItemHtml(item);
+    });
 
     if (currentCat === '5') {
         const guarnis = allData.filter(item => item.id.toString().startsWith('6') && item.id.toString().length === 4 && item.activa === 'SI');
@@ -114,7 +134,6 @@ function generateItemHtml(item, isGuarni = false) {
         photo = `<span class="emoji-photo" onclick="openGallery('${base}')">📸</span>`;
     }
 
-    // He mantenido la estructura de celdas para que Excel y la Web respeten los saltos de línea (uvas debajo del nombre)
     return `<div class="item-row"><div class="item-content"><span class="name-selected">${pName.replace(/\n/g, '<br>')} ${photo}</span><span class="name-secondary">${sName.replace(/\n/g, '<br>')}</span><div class="alergenos-list">${alergenos}</div></div><div class="price-box">${price}</div></div>`;
 }
 
