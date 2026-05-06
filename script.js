@@ -22,22 +22,18 @@ const categoriesList = [
 ];
 
 const wineSubCats = [
-    // Blancos
     { start: 13100, end: 13129, ES: 'Vinos de Mallorca', EN: 'Majorcan Wines', DE: 'Weine aus Mallorca', FR: 'Vins de Majorque', IT: 'Vini di Maiorca' },
     { start: 13130, end: 13139, ES: 'Galicia', EN: 'Galicia', DE: 'Galicien', FR: 'Galice', IT: 'Galizia' },
     { start: 13140, end: 13149, ES: 'Rueda', EN: 'Rueda', DE: 'Rueda', FR: 'Rueda', IT: 'Rueda' },
     { start: 13150, end: 13189, ES: 'Otras D.O.', EN: 'Other D.O.', DE: 'Andere D.O.', FR: 'Autres D.O.', IT: 'Altre D.O.' },
     { start: 13190, end: 13199, ES: 'Copas', EN: 'By the Glass', DE: 'Glasweise', FR: 'Au Verre', IT: 'Al Calice' },
-    // Rosados
     { start: 13200, end: 13249, ES: 'Vinos de Mallorca', EN: 'Majorcan Wines', DE: 'Weine aus Mallorca', FR: 'Vins de Majorque', IT: 'Vini di Maiorca' },
     { start: 13250, end: 13259, ES: 'Copas', EN: 'By the Glass', DE: 'Glasweise', FR: 'Au Verre', IT: 'Al Calice' },
-    // Tintos
     { start: 13300, end: 13329, ES: 'Vinos de Mallorca', EN: 'Majorcan Wines', DE: 'Weine aus Mallorca', FR: 'Vins de Majorque', IT: 'Vini di Maiorca' },
     { start: 13330, end: 13349, ES: 'Rioja', EN: 'Rioja', DE: 'Rioja', FR: 'Rioja', IT: 'Rioja' },
     { start: 13350, end: 13369, ES: 'Ribera', EN: 'Ribera', DE: 'Ribera', FR: 'Ribera', IT: 'Ribera' },
     { start: 13370, end: 13389, ES: 'Otras D.O.', EN: 'Other D.O.', DE: 'Andere D.O.', FR: 'Autres D.O.', IT: 'Altre D.O.' },
     { start: 13390, end: 13399, ES: 'Copas', EN: 'By the Glass', DE: 'Glasweise', FR: 'Au Verre', IT: 'Al Calice' },
-    // Cavas
     { start: 13450, end: 13459, ES: 'Copas', EN: 'By the Glass', DE: 'Glasweise', FR: 'Au Verre', IT: 'Al Calice' }
 ];
 
@@ -121,8 +117,15 @@ function renderMenu() {
 }
 
 function generateItemHtml(item, isGuarni = false) {
-    const pName = item[`nombre_${currentLang.toLowerCase()}`] || item.nombre_es;
-    const sName = currentLang !== 'ES' ? item.nombre_es : '';
+    const fullText = item[`nombre_${currentLang.toLowerCase()}`] || item.nombre_es;
+    const parts = fullText.split(/\r?\n/);
+    const pName = parts[0];
+    const pUvas = parts.slice(1).join('<br>');
+    
+    const sNameParts = item.nombre_es.split(/\r?\n/);
+    const sName = currentLang !== 'ES' ? sNameParts[0] : '';
+    const sUvas = (currentLang !== 'ES' && sNameParts.length > 1) ? sNameParts.slice(1).join('<br>') : '';
+
     const price = (isGuarni && parseInt(item.id) < 6100) ? '' : (parseFloat(item.precio) > 0 ? `${parseFloat(item.precio).toFixed(2)}€` : '');
     const alergenos = item.alergenos.map(a => `<img src="imagenes/alergenos/${a}.webp" onerror="this.style.display='none'">`).join('');
     
@@ -132,7 +135,21 @@ function generateItemHtml(item, isGuarni = false) {
         photo = `<span class="emoji-photo" onclick="openGallery('${base}')">📸</span>`;
     }
 
-    return `<div class="item-row"><div class="item-content"><span class="name-selected">${pName.replace(/\n/g, '<br>')} ${photo}</span><span class="name-secondary">${sName.replace(/\n/g, '<br>')}</span><div class="alergenos-list">${alergenos}</div></div><div class="price-box">${price}</div></div>`;
+    return `
+        <div class="item-row">
+            <div class="item-content">
+                <span class="name-selected">
+                    ${pName} ${photo}
+                    ${pUvas ? `<br><small style="font-size:0.85em; opacity:0.8; font-style:italic;">${pUvas}</small>` : ''}
+                </span>
+                <span class="name-secondary">
+                    ${sName}
+                    ${sUvas ? `<br><small style="font-size:0.85em; opacity:0.8; font-style:italic;">${sUvas}</small>` : ''}
+                </span>
+                <div class="alergenos-list">${alergenos}</div>
+            </div>
+            <div class="price-box">${price}</div>
+        </div>`;
 }
 
 async function openGallery(base) {
