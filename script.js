@@ -26,7 +26,7 @@ const wineSubCats = [
     { start: 13100, end: 13129, ES: 'Vinos de Mallorca', EN: 'Majorcan Wines', DE: 'Weine aus Mallorca', FR: 'Vins de Majorque', IT: 'Vini di Maiorca' },
     { start: 13130, end: 13139, ES: 'Galicia', EN: 'Galicia', DE: 'Galicien', FR: 'Galice', IT: 'Galizia' },
     { start: 13140, end: 13149, ES: 'Rueda', EN: 'Rueda', DE: 'Rueda', FR: 'Rueda', IT: 'Rueda' },
-    { start: 13150, end: 13189, ES: 'Otros', EN: 'Others', DE: 'Andere', FR: 'Autres', IT: 'Altri' },
+    { start: 13150, end: 13189, ES: 'Otras D.O.', EN: 'Other D.O.', DE: 'Andere D.O.', FR: 'Autres D.O.', IT: 'Altre D.O.' },
     { start: 13190, end: 13199, ES: 'Copas', EN: 'By the Glass', DE: 'Glasweise', FR: 'Au Verre', IT: 'Al Calice' },
     // Rosados
     { start: 13200, end: 13249, ES: 'Vinos de Mallorca', EN: 'Majorcan Wines', DE: 'Weine aus Mallorca', FR: 'Vins de Majorque', IT: 'Vini di Maiorca' },
@@ -35,9 +35,9 @@ const wineSubCats = [
     { start: 13300, end: 13329, ES: 'Vinos de Mallorca', EN: 'Majorcan Wines', DE: 'Weine aus Mallorca', FR: 'Vins de Majorque', IT: 'Vini di Maiorca' },
     { start: 13330, end: 13349, ES: 'Rioja', EN: 'Rioja', DE: 'Rioja', FR: 'Rioja', IT: 'Rioja' },
     { start: 13350, end: 13369, ES: 'Ribera', EN: 'Ribera', DE: 'Ribera', FR: 'Ribera', IT: 'Ribera' },
-    { start: 13370, end: 13389, ES: 'Otros', EN: 'Others', DE: 'Andere', FR: 'Autres', IT: 'Altri' },
+    { start: 13370, end: 13389, ES: 'Otras D.O.', EN: 'Other D.O.', DE: 'Andere D.O.', FR: 'Autres D.O.', IT: 'Altre D.O.' },
     { start: 13390, end: 13399, ES: 'Copas', EN: 'By the Glass', DE: 'Glasweise', FR: 'Au Verre', IT: 'Al Calice' },
-    // Cavas (Eliminado "Botellas", solo queda "Copas")
+    // Cavas
     { start: 13450, end: 13459, ES: 'Copas', EN: 'By the Glass', DE: 'Glasweise', FR: 'Au Verre', IT: 'Al Calice' }
 ];
 
@@ -99,7 +99,6 @@ function renderMenu() {
 
     filtered.forEach(item => {
         const idNum = parseInt(item.id);
-        
         if (currentCat.startsWith('13')) {
             const foundSub = wineSubCats.find(s => idNum >= s.start && idNum <= s.end);
             if (foundSub && foundSub[currentLang] !== currentActiveSubCatName) {
