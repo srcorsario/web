@@ -14,7 +14,12 @@ const categoriesList = [
     { id: '8', ES: 'Postres', EN: 'Desserts', DE: 'Desserts', FR: 'Desserts', IT: 'Dolci' },
     { id: '9', ES: 'Café', EN: 'Coffee', DE: 'Kaffee', FR: 'Café', IT: 'Caffè' },
     { id: '10', ES: 'Bebidas', EN: 'Drinks', DE: 'Getränke', FR: 'Boissons', IT: 'Bibite' },
-    { id: '11', ES: 'Cervezas', EN: 'Beers', DE: 'Biere', FR: 'Bières', IT: 'Birre' }
+    { id: '11', ES: 'Cervezas', EN: 'Beers', DE: 'Biere', FR: 'Bières', IT: 'Birre' },
+    // NUEVAS CATEGORÍAS DE VINOS
+    { id: '131', ES: 'Vinos Blancos', EN: 'White Wines', DE: 'Weissweine', FR: 'Vins Blancs', IT: 'Vini Bianchi' },
+    { id: '132', ES: 'Vinos Rosados', EN: 'Rosé Wines', DE: 'Roséweine', FR: 'Vins Rosés', IT: 'Vini Rosati' },
+    { id: '133', ES: 'Vinos Tintos', EN: 'Red Wines', DE: 'Rotweine', FR: 'Vins Rouges', IT: 'Vini Rossi' },
+    { id: '134', ES: 'Cavas & Champagne', EN: 'Cava & Champagne', DE: 'Cava & Champagne', FR: 'Cava & Champagne', IT: 'Cava & Champagne' }
 ];
 
 async function init() {
@@ -23,7 +28,6 @@ async function init() {
         const csvText = await response.text();
         allData = parseCSV(csvText);
         if (allData.length > 0) {
-            // SELECCIÓN AUTOMÁTICA DE IDIOMA
             const userLang = (navigator.language || navigator.userLanguage).split('-')[0].toUpperCase();
             const supportedLangs = ['ES', 'EN', 'DE', 'FR', 'IT'];
             currentLang = supportedLangs.includes(userLang) ? userLang : 'EN';
@@ -31,7 +35,6 @@ async function init() {
             renderCategories();
             renderMenu();
 
-            // Sincronizar visualmente el botón del idioma seleccionado
             document.querySelectorAll('#language-selector button').forEach(b => b.classList.toggle('active', b.id === `btn-${currentLang}`));
         }
     } catch (e) { console.error("Error:", e); }
@@ -73,7 +76,8 @@ function renderMenu() {
 
     const filtered = allData.filter(item => {
         const id = item.id.toString();
-        const match = (currentCat.length === 1) ? (id.startsWith(currentCat) && id.length === 4) : (id.startsWith(currentCat) && id.length === 5);
+        // Lógica de filtrado adaptada para soportar prefijos de 3 dígitos (vinos) y 1-2 dígitos (comida)
+        const match = id.startsWith(currentCat);
         return match && item.activa === 'SI' && (id % 1000 !== 0);
     });
 
@@ -110,7 +114,8 @@ function generateItemHtml(item, isGuarni = false) {
         photo = `<span class="emoji-photo" onclick="openGallery('${base}')">📸</span>`;
     }
 
-    return `<div class="item-row"><div class="item-content"><span class="name-selected">${pName} ${photo}</span><span class="name-secondary">${sName}</span><div class="alergenos-list">${alergenos}</div></div><div class="price-box">${price}</div></div>`;
+    // He mantenido la estructura de celdas para que Excel y la Web respeten los saltos de línea (uvas debajo del nombre)
+    return `<div class="item-row"><div class="item-content"><span class="name-selected">${pName.replace(/\n/g, '<br>')} ${photo}</span><span class="name-secondary">${sName.replace(/\n/g, '<br>')}</span><div class="alergenos-list">${alergenos}</div></div><div class="price-box">${price}</div></div>`;
 }
 
 async function openGallery(base) {
