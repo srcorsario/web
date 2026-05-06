@@ -53,14 +53,11 @@ async function init() {
     } catch (e) { console.error("Error:", e); }
 }
 
-// PARSER MEJORADO: Permite saltos de línea dentro de las celdas (Uvas)
 function parseCSV(text) {
     const rows = [];
-    // Dividimos por filas respetando saltos de línea dentro de comillas
     const lines = text.split(/\r?\n(?=(?:(?:[^"]*"){2})*[^"]*$)/);
     
     for (let i = 1; i < lines.length; i++) {
-        // Dividimos por comas respetando comas dentro de comillas
         const col = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
         if (col.length < 11) continue;
         
@@ -125,17 +122,26 @@ function renderMenu() {
 }
 
 function generateItemHtml(item, isGuarni = false) {
-    // Texto principal según idioma
-    const fullText = item[`nombre_${currentLang.toLowerCase()}`] || item.nombre_es;
-    const parts = fullText.split(/\n/);
-    const pName = parts[0];
-    const pUvas = parts.slice(1).join('<br>');
+    // Función auxiliar para separar el nombre de las uvas por las dobles barras //
+    const processName = (text) => {
+        if (!text) return { name: '', uvas: '' };
+        // Dividimos por // y limpiamos espacios
+        const parts = text.split('//').map(p => p.trim()).filter(p => p !== "");
+        return {
+            name: parts[0] || '',
+            uvas: parts[1] || ''
+        };
+    };
+
+    // Procesamos el idioma actual y el secundario (ES)
+    const currentData = processName(item[`nombre_${currentLang.toLowerCase()}`] || item.nombre_es);
+    const secondaryData = processName(item.nombre_es);
+
+    const pName = currentData.name;
+    const pUvas = currentData.uvas;
     
-    // Texto secundario (siempre ES si el idioma no es ES)
-    const secondaryFullText = item.nombre_es;
-    const sParts = secondaryFullText.split(/\n/);
-    const sName = currentLang !== 'ES' ? sParts[0] : '';
-    const sUvas = (currentLang !== 'ES' && sParts.length > 1) ? sParts.slice(1).join('<br>') : '';
+    const sName = currentLang !== 'ES' ? secondaryData.name : '';
+    const sUvas = currentLang !== 'ES' ? secondaryData.uvas : '';
 
     const price = (isGuarni && parseInt(item.id) < 6100) ? '' : (parseFloat(item.precio) > 0 ? `${parseFloat(item.precio).toFixed(2)}€` : '');
     const alergenos = item.alergenos.map(a => `<img src="imagenes/alergenos/${a}.webp" onerror="this.style.display='none'">`).join('');
