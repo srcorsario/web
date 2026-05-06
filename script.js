@@ -53,23 +53,31 @@ async function init() {
     } catch (e) { console.error("Error:", e); }
 }
 
+// PARSER MEJORADO: Permite saltos de línea dentro de las celdas (Uvas)
 function parseCSV(text) {
-    const rows = [], lines = text.split(/\r?\n/);
+    const rows = [];
+    // Dividimos por filas respetando saltos de línea dentro de comillas
+    const lines = text.split(/\r?\n(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+    
     for (let i = 1; i < lines.length; i++) {
+        // Dividimos por comas respetando comas dentro de comillas
         const col = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
         if (col.length < 11) continue;
+        
+        const clean = (val) => val ? val.replace(/^"|"$/g, '').trim() : "";
+        
         rows.push({
-            id: col[0].replace(/"/g, '').trim(),
-            precio: col[1].replace(/"/g, '').replace(',', '.'),
-            activa: col[2].replace(/"/g, '').toUpperCase().trim(),
-            nombre_es: col[3].replace(/"/g, '').trim(),
-            carpeta: col[4].replace(/"/g, '').trim(),
-            archivo: col[5].replace(/"/g, '').trim(),
-            alergenos: col[6] ? col[6].replace(/"/g, '').split(',').map(a => a.trim()).filter(a => a) : [],
-            nombre_en: col[7].replace(/"/g, '').trim(),
-            nombre_de: col[8].replace(/"/g, '').trim(),
-            nombre_fr: col[9].replace(/"/g, '').trim(),
-            nombre_it: col[10].replace(/"/g, '').trim()
+            id: clean(col[0]),
+            precio: clean(col[1]).replace(',', '.'),
+            activa: clean(col[2]).toUpperCase(),
+            nombre_es: clean(col[3]),
+            carpeta: clean(col[4]),
+            archivo: clean(col[5]),
+            alergenos: col[6] ? clean(col[6]).split(',').map(a => a.trim()).filter(a => a) : [],
+            nombre_en: clean(col[7]),
+            nombre_de: clean(col[8]),
+            nombre_fr: clean(col[9]),
+            nombre_it: clean(col[10])
         });
     }
     return rows;
@@ -117,14 +125,17 @@ function renderMenu() {
 }
 
 function generateItemHtml(item, isGuarni = false) {
+    // Texto principal según idioma
     const fullText = item[`nombre_${currentLang.toLowerCase()}`] || item.nombre_es;
-    const parts = fullText.split(/\r?\n/);
+    const parts = fullText.split(/\n/);
     const pName = parts[0];
     const pUvas = parts.slice(1).join('<br>');
     
-    const sNameParts = item.nombre_es.split(/\r?\n/);
-    const sName = currentLang !== 'ES' ? sNameParts[0] : '';
-    const sUvas = (currentLang !== 'ES' && sNameParts.length > 1) ? sNameParts.slice(1).join('<br>') : '';
+    // Texto secundario (siempre ES si el idioma no es ES)
+    const secondaryFullText = item.nombre_es;
+    const sParts = secondaryFullText.split(/\n/);
+    const sName = currentLang !== 'ES' ? sParts[0] : '';
+    const sUvas = (currentLang !== 'ES' && sParts.length > 1) ? sParts.slice(1).join('<br>') : '';
 
     const price = (isGuarni && parseInt(item.id) < 6100) ? '' : (parseFloat(item.precio) > 0 ? `${parseFloat(item.precio).toFixed(2)}€` : '');
     const alergenos = item.alergenos.map(a => `<img src="imagenes/alergenos/${a}.webp" onerror="this.style.display='none'">`).join('');
@@ -140,12 +151,13 @@ function generateItemHtml(item, isGuarni = false) {
             <div class="item-content">
                 <span class="name-selected">
                     ${pName} ${photo}
-                    ${pUvas ? `<br><small style="font-size:0.85em; opacity:0.8; font-style:italic;">${pUvas}</small>` : ''}
+                    ${pUvas ? `<br><small style="font-size:0.85em; opacity:0.8; font-style:italic; display:block; margin-top:2px;">${pUvas}</small>` : ''}
                 </span>
+                ${sName ? `
                 <span class="name-secondary">
                     ${sName}
                     ${sUvas ? `<br><small style="font-size:0.85em; opacity:0.8; font-style:italic;">${sUvas}</small>` : ''}
-                </span>
+                </span>` : ''}
                 <div class="alergenos-list">${alergenos}</div>
             </div>
             <div class="price-box">${price}</div>
