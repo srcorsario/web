@@ -15,7 +15,6 @@ const categoriesList = [
     { id: '9', ES: 'Café', EN: 'Coffee', DE: 'Kaffee', FR: 'Café', IT: 'Caffè' },
     { id: '10', ES: 'Bebidas', EN: 'Drinks', DE: 'Getränke', FR: 'Boissons', IT: 'Bibite' },
     { id: '11', ES: 'Cervezas', EN: 'Beers', DE: 'Biere', FR: 'Bières', IT: 'Birre' },
-    // CATEGORÍAS DE VINOS
     { id: '131', ES: 'Vinos Blancos', EN: 'White Wines', DE: 'Weissweine', FR: 'Vins Blancs', IT: 'Vini Bianchi' },
     { id: '132', ES: 'Vinos Rosados', EN: 'Rosé Wines', DE: 'Roséweine', FR: 'Vins Rosés', IT: 'Vini Rosati' },
     { id: '133', ES: 'Vinos Tintos', EN: 'Red Wines', DE: 'Rotweine', FR: 'Vins Rouges', IT: 'Vini Rossi' },
@@ -31,10 +30,8 @@ async function init() {
             const userLang = (navigator.language || navigator.userLanguage).split('-')[0].toUpperCase();
             const supportedLangs = ['ES', 'EN', 'DE', 'FR', 'IT'];
             currentLang = supportedLangs.includes(userLang) ? userLang : 'EN';
-
             renderCategories();
             renderMenu();
-
             document.querySelectorAll('#language-selector button').forEach(b => b.classList.toggle('active', b.id === `btn-${currentLang}`));
         }
     } catch (e) { console.error("Error:", e); }
@@ -45,7 +42,6 @@ function parseCSV(text) {
     for (let i = 1; i < lines.length; i++) {
         const col = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
         if (col.length < 11) continue;
-        
         rows.push({
             id: col[0].replace(/"/g, '').trim(),
             precio: col[1].replace(/"/g, '').replace(',', '.'),
@@ -80,24 +76,39 @@ function renderMenu() {
         return match && item.activa === 'SI' && (id % 1000 !== 0);
     });
 
-    // Títulos de sección para vinos
-    const tierraTitles = { ES: 'De Nuestra Tierra', EN: 'From Our Land', DE: 'Aus unserer Region', FR: 'De Notre Terre', IT: 'Dalla Nostra Terra' };
-    let tierraAdded = false;
-    let otrosVinosAdded = false;
+    // Definición de subcategorías por rangos de ID
+    const wineSubCats = [
+        // Blancos
+        { start: 13100, end: 13129, ES: 'De Nuestra Tierra', EN: 'From Our Land', DE: 'Aus unserer Region', FR: 'De Notre Terre', IT: 'Dalla Nostra Terra' },
+        { start: 13130, end: 13139, ES: 'Galicia', EN: 'Galicia', DE: 'Galicien', FR: 'Galice', IT: 'Galizia' },
+        { start: 13140, end: 13149, ES: 'Rueda', EN: 'Rueda', DE: 'Rueda', FR: 'Rueda', IT: 'Rueda' },
+        { start: 13150, end: 13189, ES: 'Otros', EN: 'Others', DE: 'Andere', FR: 'Autres', IT: 'Altri' },
+        { start: 13190, end: 13199, ES: 'Copas', EN: 'By the Glass', DE: 'Glasweise', FR: 'Au Verre', IT: 'Al Calice' },
+        // Rosados
+        { start: 13200, end: 13249, ES: 'Vinos', EN: 'Wines', DE: 'Weine', FR: 'Vins', IT: 'Vini' },
+        { start: 13250, end: 13259, ES: 'Copas', EN: 'By the Glass', DE: 'Glasweise', FR: 'Au Verre', IT: 'Al Calice' },
+        // Tintos
+        { start: 13300, end: 13329, ES: 'De Nuestra Tierra', EN: 'From Our Land', DE: 'Aus unserer Region', FR: 'De Notre Terre', IT: 'Dalla Nostra Terra' },
+        { start: 13330, end: 13349, ES: 'Rioja', EN: 'Rioja', DE: 'Rioja', FR: 'Rioja', IT: 'Rioja' },
+        { start: 13350, end: 13369, ES: 'Ribera', EN: 'Ribera', DE: 'Ribera', FR: 'Ribera', IT: 'Ribera' },
+        { start: 13370, end: 13389, ES: 'Otros', EN: 'Others', DE: 'Andere', FR: 'Autres', IT: 'Altri' },
+        { start: 13390, end: 13399, ES: 'Copas', EN: 'By the Glass', DE: 'Glasweise', FR: 'Au Verre', IT: 'Al Calice' },
+        // Cavas
+        { start: 13400, end: 13449, ES: 'Botellas', EN: 'Bottles', DE: 'Flaschen', FR: 'Bouteilles', IT: 'Bottiglie' },
+        { start: 13450, end: 13459, ES: 'Copas', EN: 'By the Glass', DE: 'Glasweise', FR: 'Au Verre', IT: 'Al Calice' }
+    ];
+
+    let lastSubCat = "";
 
     filtered.forEach(item => {
         const idNum = parseInt(item.id);
-        const subId = idNum % 100; // Obtiene los últimos dos dígitos (00-99)
-
-        // Si es una categoría de vino y el ID está entre 00 y 29, ponemos el título de "Nuestra Tierra"
-        if (currentCat.startsWith('13') && subId >= 0 && subId <= 29 && !tierraAdded) {
-            grid.innerHTML += `<h3 class="sub-category-title">${tierraTitles[currentLang]}</h3>`;
-            tierraAdded = true;
-        } 
-        // Si ya pasamos a los vinos de fuera (ID > 29), podríamos poner un separador opcional o simplemente dejar que sigan
-        else if (currentCat.startsWith('13') && subId > 29 && !otrosVinosAdded && tierraAdded) {
-            grid.innerHTML += `<hr class="section-divider">`; // Línea divisoria opcional
-            otrosVinosAdded = true;
+        
+        // Buscar si el ID actual pertenece a una subcategoría de vinos
+        const subCat = wineSubCats.find(s => idNum >= s.start && idNum <= s.end);
+        
+        if (subCat && subCat[currentLang] !== lastSubCat) {
+            grid.innerHTML += `<h3 class="sub-category-title">${subCat[currentLang]}</h3>`;
+            lastSubCat = subCat[currentLang];
         }
 
         grid.innerHTML += generateItemHtml(item);
@@ -123,9 +134,7 @@ function renderMenu() {
 function generateItemHtml(item, isGuarni = false) {
     const pName = item[`nombre_${currentLang.toLowerCase()}`] || item.nombre_es;
     const sName = currentLang !== 'ES' ? item.nombre_es : '';
-    
     const price = (isGuarni && parseInt(item.id) < 6100) ? '' : (parseFloat(item.precio) > 0 ? `${parseFloat(item.precio).toFixed(2)}€` : '');
-    
     const alergenos = item.alergenos.map(a => `<img src="imagenes/alergenos/${a}.webp" onerror="this.style.display='none'">`).join('');
     
     let photo = '';
