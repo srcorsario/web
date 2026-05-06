@@ -21,21 +21,23 @@ const categoriesList = [
     { id: '134', ES: 'Cavas & Champagne', EN: 'Cava & Champagne', DE: 'Cava & Champagne', FR: 'Cava & Champagne', IT: 'Cava & Champagne' }
 ];
 
-// Definición de subcategorías por rangos de ID (Fuera de renderMenu para mayor limpieza)
 const wineSubCats = [
-    { start: 13100, end: 13129, ES: 'De Nuestra Tierra', EN: 'From Our Land', DE: 'Aus unserer Region', FR: 'De Notre Terre', IT: 'Dalla Nostra Terra' },
+    // Blancos
+    { start: 13100, end: 13129, ES: 'Vinos de Mallorca', EN: 'Majorcan Wines', DE: 'Weine aus Mallorca', FR: 'Vins de Majorque', IT: 'Vini di Maiorca' },
     { start: 13130, end: 13139, ES: 'Galicia', EN: 'Galicia', DE: 'Galicien', FR: 'Galice', IT: 'Galizia' },
     { start: 13140, end: 13149, ES: 'Rueda', EN: 'Rueda', DE: 'Rueda', FR: 'Rueda', IT: 'Rueda' },
     { start: 13150, end: 13189, ES: 'Otros', EN: 'Others', DE: 'Andere', FR: 'Autres', IT: 'Altri' },
     { start: 13190, end: 13199, ES: 'Copas', EN: 'By the Glass', DE: 'Glasweise', FR: 'Au Verre', IT: 'Al Calice' },
-    { start: 13200, end: 13249, ES: 'Vinos', EN: 'Wines', DE: 'Weine', FR: 'Vins', IT: 'Vini' },
+    // Rosados
+    { start: 13200, end: 13249, ES: 'Vinos de Mallorca', EN: 'Majorcan Wines', DE: 'Weine aus Mallorca', FR: 'Vins de Majorque', IT: 'Vini di Maiorca' },
     { start: 13250, end: 13259, ES: 'Copas', EN: 'By the Glass', DE: 'Glasweise', FR: 'Au Verre', IT: 'Al Calice' },
-    { start: 13300, end: 13329, ES: 'De Nuestra Tierra', EN: 'From Our Land', DE: 'Aus unserer Region', FR: 'De Notre Terre', IT: 'Dalla Nostra Terra' },
+    // Tintos
+    { start: 13300, end: 13329, ES: 'Vinos de Mallorca', EN: 'Majorcan Wines', DE: 'Weine aus Mallorca', FR: 'Vins de Majorque', IT: 'Vini di Maiorca' },
     { start: 13330, end: 13349, ES: 'Rioja', EN: 'Rioja', DE: 'Rioja', FR: 'Rioja', IT: 'Rioja' },
     { start: 13350, end: 13369, ES: 'Ribera', EN: 'Ribera', DE: 'Ribera', FR: 'Ribera', IT: 'Ribera' },
     { start: 13370, end: 13389, ES: 'Otros', EN: 'Others', DE: 'Andere', FR: 'Autres', IT: 'Altri' },
     { start: 13390, end: 13399, ES: 'Copas', EN: 'By the Glass', DE: 'Glasweise', FR: 'Au Verre', IT: 'Al Calice' },
-    { start: 13400, end: 13449, ES: 'Botellas', EN: 'Bottles', DE: 'Flaschen', FR: 'Bouteilles', IT: 'Bottiglie' },
+    // Cavas (Eliminado "Botellas", solo queda "Copas")
     { start: 13450, end: 13459, ES: 'Copas', EN: 'By the Glass', DE: 'Glasweise', FR: 'Au Verre', IT: 'Al Calice' }
 ];
 
@@ -98,7 +100,6 @@ function renderMenu() {
     filtered.forEach(item => {
         const idNum = parseInt(item.id);
         
-        // Solo buscamos subcategorías si estamos en una categoría de vinos (131, 132, 133, 134)
         if (currentCat.startsWith('13')) {
             const foundSub = wineSubCats.find(s => idNum >= s.start && idNum <= s.end);
             if (foundSub && foundSub[currentLang] !== currentActiveSubCatName) {
@@ -106,11 +107,9 @@ function renderMenu() {
                 currentActiveSubCatName = foundSub[currentLang];
             }
         }
-
         grid.innerHTML += generateItemHtml(item);
     });
 
-    // Lógica de guarniciones para la categoría 5
     if (currentCat === '5') {
         const guarnis = allData.filter(item => item.id.toString().startsWith('6') && item.id.toString().length === 4 && item.activa === 'SI');
         if (guarnis.length > 0) {
@@ -134,19 +133,8 @@ function generateItemHtml(item, isGuarni = false) {
         photo = `<span class="emoji-photo" onclick="openGallery('${base}')">📸</span>`;
     }
 
-    return `
-        <div class="item-row">
-            <div class="item-content">
-                <span class="name-selected">${pName.replace(/\n/g, '<br>')} ${photo}</span>
-                <span class="name-secondary">${sName.replace(/\n/g, '<br>')}</span>
-                <div class="alergenos-list">${alergenos}</div>
-            </div>
-            <div class="price-box">${price}</div>
-        </div>`;
+    return `<div class="item-row"><div class="item-content"><span class="name-selected">${pName.replace(/\n/g, '<br>')} ${photo}</span><span class="name-secondary">${sName.replace(/\n/g, '<br>')}</span><div class="alergenos-list">${alergenos}</div></div><div class="price-box">${price}</div></div>`;
 }
-
-// Las funciones de Galería (openGallery, updateModal, changePhoto, closeModal) 
-// y las de cambio de estado (changeLanguage, filterCategory) se mantienen igual que en tu original.
 
 async function openGallery(base) {
     currentGalleryPath = base; currentPhotoIndex = 1; maxPhotosFound = 1;
