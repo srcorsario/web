@@ -1,5 +1,5 @@
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9rPlxpax2lE0rN97c6Hoy_OxUwREqRb48juEBr9C91ZFY2UvaKgC8JdiRcwDrtBErXFVmFRh0Zr5e/pub?gid=0&single=true&output=csv';
-const APP_VERSION = 'v2.8'; 
+const APP_VERSION = 'v3.0'; 
 
 let allData = [];
 let currentLang = 'ES', currentCat = '12';
@@ -166,7 +166,7 @@ function generateItemHtml(item, isGuarni = false) {
         </div>`;
 }
 
-async function managePreload() {
+function managePreload() {
     currentPreloadSession++;
     const mySession = currentPreloadSession;
     isPreloading = false; 
@@ -174,19 +174,23 @@ async function managePreload() {
 
     const sortedData = [...allData].sort((a, b) => parseInt(a.id) - parseInt(b.id));
 
-    // 1. CARGA PRIORITARIA: Foto 01 de la categoría actual
-    const currentItems = sortedData.filter(i => isItemInCategory(i.id, currentCat) && i.archivo && i.activa === 'SI');
-    currentItems.forEach(item => {
-        const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
-        preloadQueue.push({ base, n: 1, priority: true });
-    });
+    // Función auxiliar para añadir una categoría completa por niveles (01 primero, luego 02...)
+    const addCategoryByLevels = (items) => {
+        const bases = items.map(item => `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`);
+        for (let level = 1; level <= 4; level++) {
+            bases.forEach(base => {
+                preloadQueue.push({ base, n: level });
+            });
+        }
+    };
 
-    // 2. CARGA SECUNDARIA: Foto 01 de todo lo demás
+    // 1. Prioridad: Categoría actual por niveles (Todos los 01, luego todos los 02...)
+    const currentItems = sortedData.filter(i => isItemInCategory(i.id, currentCat) && i.archivo && i.activa === 'SI');
+    addCategoryByLevels(currentItems);
+
+    // 2. Resto: Comida restante por niveles (Todos los 01, luego todos los 02...)
     const otherFoodItems = sortedData.filter(i => !isItemInCategory(i.id, currentCat) && parseInt(i.id) < 13000 && i.archivo && i.activa === 'SI');
-    otherFoodItems.forEach(item => {
-        const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
-        preloadQueue.push({ base, n: 1, priority: false });
-    });
+    addCategoryByLevels(otherFoodItems);
 
     processPreloadQueue(mySession);
 }
@@ -201,18 +205,16 @@ async function processPreloadQueue(session) {
         const task = preloadQueue.shift();
         const url = `${task.base}0${task.n}.webp`;
 
-        // Lógica de salto si ya está verificado
-        if (verifiedImages[url] !== undefined) {
-            if (verifiedImages[url] === true && task.n < 4) {
-                // Si es prioridad (cat actual), la subimos arriba para completar la categoría antes de otras 01
-                if (task.priority) {
-                    preloadQueue.unshift({ base: task.base, n: task.n + 1, priority: true });
-                } else {
-                    preloadQueue.push({ base: task.base, n: task.n + 1, priority: false });
-                }
+        // REGLA DE SALTO: Si es una foto secundaria (02, 03, 04) y la anterior (n-1) falló, no la descargamos
+        if (task.n > 1) {
+            const prevUrl = `${task.base}0${task.n - 1}.webp`;
+            if (verifiedImages[prevUrl] === false) {
+                verifiedImages[url] = false;
+                continue;
             }
-            continue;
         }
+
+        if (verifiedImages[url] !== undefined) continue;
 
         const success = await new Promise(resolve => {
             const img = new Image();
@@ -222,18 +224,6 @@ async function processPreloadQueue(session) {
         });
 
         verifiedImages[url] = success;
-
-        // Si la imagen existe, programamos la siguiente profundidad (02, 03, 04)
-        if (success && task.n < 4) {
-            if (task.priority) {
-                // REGLA CLAVE: Si es de la categoría actual, se pone PRIMERO en la cola
-                // para que termine la profundidad de esta categoría antes de saltar a otra 01.
-                preloadQueue.unshift({ base: task.base, n: task.n + 1, priority: true });
-            } else {
-                // Si no es prioridad, va al final para no estorbar
-                preloadQueue.push({ base: task.base, n: task.n + 1, priority: false });
-            }
-        }
     }
     isPreloading = false;
 }
