@@ -92,36 +92,15 @@ function renderMenu() {
     grid.innerHTML = '';
 
     const filtered = allData.filter(item => {
-        const idNum = parseInt(item.id);
-        const catNum = parseInt(currentCat);
-        
-        if (currentCat.length <= 2) {
-            const min = catNum * 1000;
-            const max = min + 999;
-            return idNum >= min && idNum <= max && item.activa === 'SI';
-        } else {
-            const min = catNum * 100;
-            const max = min + 99;
-            return idNum >= min && idNum <= max && item.activa === 'SI';
-        }
+        const id = item.id.toString();
+        return id.startsWith(currentCat) && item.activa === 'SI' && (id % 1000 !== 0);
     });
 
     let currentActiveSubCatName = "";
-    let lastIdGroup = 0;
 
     filtered.forEach(item => {
         const idNum = parseInt(item.id);
-
-        // Lógica de doble línea para Sugerencias
-        if (currentCat === '12') {
-            const currentGroup = Math.floor(idNum / 100);
-            if (lastIdGroup !== 0 && lastIdGroup !== currentGroup) {
-                grid.innerHTML += `<div class="double-separator"></div>`;
-            }
-            lastIdGroup = currentGroup;
-        }
-
-        if (idNum >= 13100 && idNum <= 14499) {
+        if (currentCat.startsWith('13')) {
             const foundSub = wineSubCats.find(s => idNum >= s.start && idNum <= s.end);
             if (foundSub && foundSub[currentLang] !== currentActiveSubCatName) {
                 grid.innerHTML += `<h3 class="sub-category-title">${foundSub[currentLang]}</h3>`;
@@ -132,10 +111,7 @@ function renderMenu() {
     });
 
     if (currentCat === '5') {
-        const guarnis = allData.filter(item => {
-            const id = parseInt(item.id);
-            return id >= 6000 && id <= 6999 && item.activa === 'SI';
-        });
+        const guarnis = allData.filter(item => item.id.toString().startsWith('6') && item.id.toString().length === 4 && item.activa === 'SI');
         if (guarnis.length > 0) {
             const guarniTitles = { ES: 'Guarniciones', EN: 'Side Dishes', DE: 'Beilagen', FR: 'Garnitures', IT: 'Contorni' };
             const titleText = guarniTitles[currentLang] || guarniTitles['ES'];
@@ -146,17 +122,24 @@ function renderMenu() {
 }
 
 function generateItemHtml(item, isGuarni = false) {
+    // Función auxiliar para separar el nombre de las uvas por las dobles barras //
     const processName = (text) => {
         if (!text) return { name: '', uvas: '' };
+        // Dividimos por // y limpiamos espacios
         const parts = text.split('//').map(p => p.trim()).filter(p => p !== "");
-        return { name: parts[0] || '', uvas: parts[1] || '' };
+        return {
+            name: parts[0] || '',
+            uvas: parts[1] || ''
+        };
     };
 
+    // Procesamos el idioma actual y el secundario (ES)
     const currentData = processName(item[`nombre_${currentLang.toLowerCase()}`] || item.nombre_es);
     const secondaryData = processName(item.nombre_es);
 
     const pName = currentData.name;
     const pUvas = currentData.uvas;
+    
     const sName = currentLang !== 'ES' ? secondaryData.name : '';
     const sUvas = currentLang !== 'ES' ? secondaryData.uvas : '';
 
