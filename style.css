@@ -15,7 +15,6 @@
     display: inline-block;
 }
 
-/* Ajustes de tamaño especiales para iconos visualmente pequeños */
 .alergenos-list img[src*="APIO"], 
 .alergenos-list img[src*="CACAHUETE"] {
     transform: scale(1.2);
@@ -28,7 +27,13 @@
 }
 /* --- FIN ALÉRGENOS --- */
 
-/* (El resto de tu CSS se mantiene igual debajo) */
+/* ESPACIADO PARA SUGERENCIAS */
+.spacer-categoria {
+    width: 100%;
+    height: 40px; /* Ajusta este valor si quieres más o menos separación */
+    border: none;
+}
+
 :root { --bg: #ffffff; --text: #1c1c1e; --grey: #8e8e93; --border: #e5e5ea; }
 body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); margin: 0; color: var(--text); -webkit-tap-highlight-color: transparent; }
 header { background: rgba(255,255,255,0.95); position: sticky; top: 0; z-index: 100; padding: 10px; border-bottom: 1px solid var(--border); backdrop-filter: blur(10px); }
