@@ -3,7 +3,6 @@ const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9rPlxpax2lE0r
 let currentLang = 'ES', currentCat = '12', allData = [];
 let currentGalleryPath = '', currentPhotoIndex = 1, maxPhotosFound = 1;
 
-// Variables para el sistema de precarga inteligente
 let preloadQueue = [];
 let isPreloading = false;
 let stopCurrentPreload = false;
@@ -54,8 +53,6 @@ async function init() {
             renderCategories();
             renderMenu();
             document.querySelectorAll('#language-selector button').forEach(b => b.classList.toggle('active', b.id === `btn-${currentLang}`));
-            
-            // Iniciamos la precarga inteligente por primera vez
             managePreload();
         }
     } catch (e) { console.error("Error:", e); }
@@ -147,30 +144,28 @@ function generateItemHtml(item, isGuarni = false) {
     return `<div class="item-row"><div class="item-content"><span class="name-selected">${pName} ${photo}${pUvas ? `<br><small style="font-size:0.85em; opacity:0.8; font-style:italic; display:block; margin-top:2px;">${pUvas}</small>` : ''}</span>${sName ? `<span class="name-secondary">${sName}${sUvas ? `<br><small style="font-size:0.85em; opacity:0.8; font-style:italic;">${sUvas}</small>` : ''}</span>` : ''}<div class="alergenos-list">${alergenos}</div></div><div class="price-box">${price}</div></div>`;
 }
 
-// LÓGICA DE PRECARGA INTELIGENTE
 async function managePreload() {
-    stopCurrentPreload = true; // Señal para detener procesos previos si los hay
+    stopCurrentPreload = true; 
     preloadQueue = [];
     
-    // 1. Priorizamos Categoría Actual - Todas las 01.webp
     const currentItems = allData.filter(i => i.id.toString().startsWith(currentCat) && i.archivo && i.activa === 'SI');
+    const otherItems = allData.filter(i => !i.id.toString().startsWith(currentCat) && i.archivo && i.activa === 'SI');
+
     currentItems.forEach(item => {
         const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
-        preloadQueue.push(`${base}01.webp`);
+        preloadQueue.push({ base, n: 1 });
     });
 
-    // 2. Después, Categoría Actual - Fotos 02, 03, 04
     for (let n = 2; n <= 4; n++) {
         currentItems.forEach(item => {
             const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
-            preloadQueue.push(`${base}0${n}.webp`);
+            preloadQueue.push({ base, n: n });
         });
     }
 
-    // 3. Al final, resto de categorías (solo 01.webp)
-    allData.filter(i => !i.id.toString().startsWith(currentCat) && i.archivo && i.activa === 'SI').forEach(item => {
+    otherItems.forEach(item => {
         const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
-        preloadQueue.push(`${base}01.webp`);
+        preloadQueue.push({ base, n: 1 });
     });
 
     processPreloadQueue();
@@ -183,26 +178,29 @@ async function processPreloadQueue() {
 
     while (preloadQueue.length > 0) {
         if (stopCurrentPreload) break;
-        const url = preloadQueue.shift();
+        const task = preloadQueue.shift();
+        const url = `${task.base}0${task.n}.webp`;
         
-        await new Promise(resolve => {
+        const success = await new Promise(resolve => {
             const img = new Image();
-            img.onload = img.onerror = resolve; // Avanzar aunque falle
+            img.onload = () => resolve(true);
+            img.onerror = () => resolve(false);
             img.src = url;
         });
+
+        if (!success && task.n < 4) {
+            preloadQueue = preloadQueue.filter(t => t.base !== task.base);
+        }
     }
     isPreloading = false;
 }
 
 async function openGallery(base) {
-    stopCurrentPreload = true; // Modo Turbo: paramos precarga de fondo
+    stopCurrentPreload = true; 
     currentGalleryPath = base; currentPhotoIndex = 1; maxPhotosFound = 1;
-    
-    // Mostramos la primera inmediatamente
     updateModal();
     document.getElementById('photo-modal').style.display = 'flex';
 
-    // Cargamos el carrusel específico con prioridad absoluta
     for (let i = 2; i <= 4; i++) {
         const exists = await new Promise(r => { 
             const img = new Image(); 
@@ -215,8 +213,6 @@ async function openGallery(base) {
             updateModal();
         } else break;
     }
-    // Una vez cerrado o terminado el carrusel, la precarga podría retomarse si fuera necesario
-    // pero dejamos que el usuario navegue.
 }
 
 function updateModal() {
@@ -228,7 +224,7 @@ function updateModal() {
 function changePhoto(n) { currentPhotoIndex += n; updateModal(); }
 function closeModal() { 
     document.getElementById('photo-modal').style.display = 'none';
-    managePreload(); // Al cerrar el modal, retomamos la precarga de fondo
+    managePreload(); 
 }
 
 function changeLanguage(l) {
@@ -242,7 +238,7 @@ function filterCategory(id) {
     renderCategories(); 
     renderMenu(); 
     window.scrollTo(0,0); 
-    managePreload(); // Al cambiar categoría, reordenamos la cola
+    managePreload(); 
 }
 
 init();
