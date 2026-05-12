@@ -1,5 +1,5 @@
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9rPlxpax2lE0rN97c6Hoy_OxUwREqRb48juEBr9C91ZFY2UvaKgC8JdiRcwDrtBErXFVmFRh0Zr5e/pub?gid=0&single=true&output=csv';
-const APP_VERSION = 'v1.5'; 
+const APP_VERSION = 'v1.6'; 
 
 let allData = [];
 let currentLang = 'ES', currentCat = '12';
@@ -196,24 +196,28 @@ async function processPreloadQueue() {
         const task = preloadQueue.shift();
         const url = `${task.base}0${task.n}.webp`;
         
-        await new Promise(resolve => {
+        const success = await new Promise(resolve => {
             const img = new Image();
             img.onload = () => resolve(true);
             img.onerror = () => resolve(false);
             img.src = url;
         });
+
+        // FRENO: Si falla la foto 02, eliminamos las tareas de las fotos 03 y 04 para este mismo plato
+        if (!success && task.n < 4) {
+            preloadQueue = preloadQueue.filter(t => t.base !== task.base);
+        }
     }
     isPreloading = false;
 }
 
 async function openGallery(base) {
-    // Paramos la cola general para priorizar estas 3 fotos
     stopCurrentPreload = true; 
     currentGalleryPath = base; currentPhotoIndex = 1; maxPhotosFound = 1;
     updateModal();
     document.getElementById('photo-modal').style.display = 'flex';
 
-    // Buscamos las fotos 02, 03, 04 de este plato
+    // FRENO EN CARRUSEL: Búsqueda secuencial
     for (let i = 2; i <= 4; i++) {
         const exists = await new Promise(r => { 
             const img = new Image(); 
@@ -224,11 +228,12 @@ async function openGallery(base) {
         if (exists) {
             maxPhotosFound = i;
             updateModal();
-        } else break;
+        } else {
+            // Si la foto 'i' no existe, dejamos de buscar las siguientes inmediatamente
+            break; 
+        }
     }
     
-    // IMPORTANTE: En cuanto termina de chequear estas fotos, 
-    // reactivamos la cola general aunque el modal siga abierto.
     isPreloading = false; 
     processPreloadQueue();
 }
@@ -243,7 +248,6 @@ function changePhoto(n) { currentPhotoIndex += n; updateModal(); }
 
 function closeModal() { 
     document.getElementById('photo-modal').style.display = 'none';
-    // Al cerrar, nos aseguramos de que la cola siga viva por si acaso
     if (!isPreloading) processPreloadQueue();
 }
 
