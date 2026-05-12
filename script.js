@@ -1,10 +1,12 @@
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9rPlxpax2lE0rN97c6Hoy_OxUwREqRb48juEBr9C91ZFY2UvaKgC8JdiRcwDrtBErXFVmFRh0Zr5e/pub?gid=0&single=true&output=csv';
-const APP_VERSION = 'v2.4'; 
+const APP_VERSION = 'v2.5'; 
 
 let allData = [];
 let currentLang = 'ES', currentCat = '12';
 let currentGalleryPath = '', currentPhotoIndex = 1, maxPhotosFound = 1;
 
+// "Memoria" para evitar descargas repetitivas
+let verifiedImages = {}; 
 let preloadQueue = [];
 let isPreloading = false;
 let currentPreloadSession = 0;
@@ -170,33 +172,31 @@ async function managePreload() {
     const mySession = currentPreloadSession;
     isPreloading = false; 
     preloadQueue = [];
+
     const sortedData = [...allData].sort((a, b) => parseInt(a.id) - parseInt(b.id));
 
+    // Prioridad 1: Imágenes de la categoría actual
     const currentItems = sortedData.filter(i => isItemInCategory(i.id, currentCat) && i.archivo && i.activa === 'SI');
     currentItems.forEach(item => {
-        preloadQueue.push({ base: `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`, n: 1 });
-    });
-    if (parseInt(currentCat) < 13) {
-        for (let n = 2; n <= 4; n++) {
-            currentItems.forEach(item => {
-                preloadQueue.push({ base: `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`, n: n });
-            });
+        const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
+        for (let n = 1; n <= 4; n++) {
+            const url = `${base}0${n}.webp`;
+            if (verifiedImages[url] === undefined) {
+                preloadQueue.push({ url, base, n });
+            }
         }
-    }
+    });
 
+    // Prioridad 2: Resto de comida
     const otherFoodItems = sortedData.filter(i => !isItemInCategory(i.id, currentCat) && parseInt(i.id) < 13000 && i.archivo && i.activa === 'SI');
     otherFoodItems.forEach(item => {
-        preloadQueue.push({ base: `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`, n: 1 });
-    });
-    for (let n = 2; n <= 4; n++) {
-        otherFoodItems.forEach(item => {
-            preloadQueue.push({ base: `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`, n: n });
-        });
-    }
-
-    const otherWineItems = sortedData.filter(i => !isItemInCategory(i.id, currentCat) && parseInt(i.id) >= 13000 && i.archivo && i.activa === 'SI');
-    otherWineItems.forEach(item => {
-        preloadQueue.push({ base: `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`, n: 1 });
+        const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
+        for (let n = 1; n <= 4; n++) {
+            const url = `${base}0${n}.webp`;
+            if (verifiedImages[url] === undefined) {
+                preloadQueue.push({ url, base, n });
+            }
+        }
     });
 
     processPreloadQueue(mySession);
@@ -205,17 +205,27 @@ async function managePreload() {
 async function processPreloadQueue(session) {
     if (isPreloading) return;
     isPreloading = true;
+
     while (preloadQueue.length > 0) {
         if (session !== currentPreloadSession) { isPreloading = false; return; }
+        
         const task = preloadQueue.shift();
+        
+        // Si ya se verificó mientras estaba en cola, saltar
+        if (verifiedImages[task.url] !== undefined) continue;
+
         const success = await new Promise(resolve => {
             const img = new Image();
             img.onload = () => resolve(true);
             img.onerror = () => resolve(false);
-            img.src = `${task.base}0${task.n}.webp`;
+            img.src = task.url;
         });
-        if (!success && task.n < 4) {
-            preloadQueue = preloadQueue.filter(t => t.base !== task.base);
+
+        verifiedImages[task.url] = success;
+
+        // Si una imagen (ej. la 02) no existe, cancelamos las siguientes (03, 04) de ese mismo plato
+        if (!success) {
+            preloadQueue = preloadQueue.filter(t => t.base !== task.base || t.n <= task.n);
         }
     }
     isPreloading = false;
@@ -223,15 +233,33 @@ async function processPreloadQueue(session) {
 
 async function openGallery(base) {
     currentPreloadSession++; 
-    currentGalleryPath = base; currentPhotoIndex = 1; maxPhotosFound = 1;
+    currentGalleryPath = base; 
+    currentPhotoIndex = 1; 
+    maxPhotosFound = 1;
+
     updateModal();
     document.getElementById('photo-modal').style.display = 'flex';
+
     for (let i = 2; i <= 4; i++) {
-        const exists = await new Promise(r => { 
-            const img = new Image(); img.onload = () => r(true); img.onerror = () => r(false); 
-            img.src = `${base}0${i}.webp`; 
-        });
-        if (exists) { maxPhotosFound = i; updateModal(); } else break;
+        const url = `${base}0${i}.webp`;
+        let exists = verifiedImages[url];
+
+        if (exists === undefined) {
+            exists = await new Promise(r => { 
+                const img = new Image(); 
+                img.onload = () => r(true); 
+                img.onerror = () => r(false); 
+                img.src = url; 
+            });
+            verifiedImages[url] = exists;
+        }
+
+        if (exists) { 
+            maxPhotosFound = i; 
+            updateModal(); 
+        } else {
+            break;
+        }
     }
     processPreloadQueue(currentPreloadSession);
 }
