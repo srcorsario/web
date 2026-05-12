@@ -1,5 +1,5 @@
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9rPlxpax2lE0rN97c6Hoy_OxUwREqRb48juEBr9C91ZFY2UvaKgC8JdiRcwDrtBErXFVmFRh0Zr5e/pub?gid=0&single=true&output=csv';
-const APP_VERSION = 'v1.4'; 
+const APP_VERSION = 'v1.5'; 
 
 let allData = [];
 let currentLang = 'ES', currentCat = '12';
@@ -152,18 +152,15 @@ async function managePreload() {
     
     const sortedData = [...allData].sort((a, b) => parseInt(a.id) - parseInt(b.id));
 
-    // Separamos los items según su categoría y tipo
     const currentItems = sortedData.filter(i => i.id.toString().startsWith(currentCat) && i.archivo && i.activa === 'SI');
     const foodItems = sortedData.filter(i => !i.id.toString().startsWith(currentCat) && !i.id.toString().startsWith('13') && i.archivo && i.activa === 'SI');
     const wineItems = sortedData.filter(i => !i.id.toString().startsWith(currentCat) && i.id.toString().startsWith('13') && i.archivo && i.activa === 'SI');
 
-    // 1. Fotos 01 de la categoría en pantalla (Comida o Vino)
     currentItems.forEach(item => {
         const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
         preloadQueue.push({ base, n: 1 });
     });
 
-    // 2. Fotos 02-04 de la categoría en pantalla SOLO si NO es vino
     if (!currentCat.startsWith('13')) {
         for (let n = 2; n <= 4; n++) {
             currentItems.forEach(item => {
@@ -173,13 +170,11 @@ async function managePreload() {
         }
     }
 
-    // 3. Fotos 01 del resto de comida
     foodItems.forEach(item => {
         const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
         preloadQueue.push({ base, n: 1 });
     });
 
-    // 4. Fotos 01 de vinos que NO están en pantalla (al final de todo)
     wineItems.forEach(item => {
         const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
         preloadQueue.push({ base, n: 1 });
@@ -201,26 +196,24 @@ async function processPreloadQueue() {
         const task = preloadQueue.shift();
         const url = `${task.base}0${task.n}.webp`;
         
-        const success = await new Promise(resolve => {
+        await new Promise(resolve => {
             const img = new Image();
             img.onload = () => resolve(true);
             img.onerror = () => resolve(false);
             img.src = url;
         });
-
-        if (!success && task.n < 4) {
-            preloadQueue = preloadQueue.filter(t => t.base !== task.base);
-        }
     }
     isPreloading = false;
 }
 
 async function openGallery(base) {
+    // Paramos la cola general para priorizar estas 3 fotos
     stopCurrentPreload = true; 
     currentGalleryPath = base; currentPhotoIndex = 1; maxPhotosFound = 1;
     updateModal();
     document.getElementById('photo-modal').style.display = 'flex';
 
+    // Buscamos las fotos 02, 03, 04 de este plato
     for (let i = 2; i <= 4; i++) {
         const exists = await new Promise(r => { 
             const img = new Image(); 
@@ -233,6 +226,11 @@ async function openGallery(base) {
             updateModal();
         } else break;
     }
+    
+    // IMPORTANTE: En cuanto termina de chequear estas fotos, 
+    // reactivamos la cola general aunque el modal siga abierto.
+    isPreloading = false; 
+    processPreloadQueue();
 }
 
 function updateModal() {
@@ -245,8 +243,8 @@ function changePhoto(n) { currentPhotoIndex += n; updateModal(); }
 
 function closeModal() { 
     document.getElementById('photo-modal').style.display = 'none';
-    isPreloading = false; 
-    processPreloadQueue();
+    // Al cerrar, nos aseguramos de que la cola siga viva por si acaso
+    if (!isPreloading) processPreloadQueue();
 }
 
 function changeLanguage(l) {
