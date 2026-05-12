@@ -56,13 +56,10 @@ async function init() {
 function parseCSV(text) {
     const rows = [];
     const lines = text.split(/\r?\n(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-    
     for (let i = 1; i < lines.length; i++) {
         const col = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
         if (col.length < 11) continue;
-        
         const clean = (val) => val ? val.replace(/^"|"$/g, '').trim() : "";
-        
         rows.push({
             id: clean(col[0]),
             precio: clean(col[1]).replace(',', '.'),
@@ -94,14 +91,11 @@ function renderMenu() {
     const filtered = allData.filter(item => {
         const idNum = parseInt(item.id);
         const catNum = parseInt(currentCat);
-        
         if (currentCat.length <= 2) {
-            // Categorías estándar (1, 2, 11, etc): Rango exacto (ej: 11 -> 11000 a 11999)
             const min = catNum * 1000;
             const max = min + 999;
             return idNum >= min && idNum <= max && item.activa === 'SI';
         } else {
-            // Categorías de vinos (131, 132, etc): Rango exacto (ej: 131 -> 13100 a 13199)
             const min = catNum * 100;
             const max = min + 99;
             return idNum >= min && idNum <= max && item.activa === 'SI';
@@ -109,9 +103,17 @@ function renderMenu() {
     });
 
     let currentActiveSubCatName = "";
+    let lastFolder = ""; // Nueva variable para detectar cambio de grupo
 
     filtered.forEach(item => {
         const idNum = parseInt(item.id);
+
+        // LÓGICA DE SEPARACIÓN EN SUGERENCIAS (CATEGORÍA 12)
+        if (currentCat === '12' && lastFolder !== "" && lastFolder !== item.carpeta) {
+            grid.innerHTML += `<div class="spacer-categoria"></div>`;
+        }
+        lastFolder = item.carpeta;
+
         if (idNum >= 13100 && idNum <= 14499) {
             const foundSub = wineSubCats.find(s => idNum >= s.start && idNum <= s.end);
             if (foundSub && foundSub[currentLang] !== currentActiveSubCatName) {
@@ -142,40 +144,20 @@ function generateItemHtml(item, isGuarni = false) {
         const parts = text.split('//').map(p => p.trim()).filter(p => p !== "");
         return { name: parts[0] || '', uvas: parts[1] || '' };
     };
-
     const currentData = processName(item[`nombre_${currentLang.toLowerCase()}`] || item.nombre_es);
     const secondaryData = processName(item.nombre_es);
-
     const pName = currentData.name;
     const pUvas = currentData.uvas;
     const sName = currentLang !== 'ES' ? secondaryData.name : '';
     const sUvas = currentLang !== 'ES' ? secondaryData.uvas : '';
-
     const price = (isGuarni && parseInt(item.id) < 6100) ? '' : (parseFloat(item.precio) > 0 ? `${parseFloat(item.precio).toFixed(2)}€` : '');
     const alergenos = item.alergenos.map(a => `<img src="imagenes/alergenos/${a}.webp" onerror="this.style.display='none'">`).join('');
-    
     let photo = '';
     if (item.archivo && item.archivo.includes('01.webp')) {
         const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
         photo = `<span class="emoji-photo" onclick="openGallery('${base}')">📸</span>`;
     }
-
-    return `
-        <div class="item-row">
-            <div class="item-content">
-                <span class="name-selected">
-                    ${pName} ${photo}
-                    ${pUvas ? `<br><small style="font-size:0.85em; opacity:0.8; font-style:italic; display:block; margin-top:2px;">${pUvas}</small>` : ''}
-                </span>
-                ${sName ? `
-                <span class="name-secondary">
-                    ${sName}
-                    ${sUvas ? `<br><small style="font-size:0.85em; opacity:0.8; font-style:italic;">${sUvas}</small>` : ''}
-                </span>` : ''}
-                <div class="alergenos-list">${alergenos}</div>
-            </div>
-            <div class="price-box">${price}</div>
-        </div>`;
+    return `<div class="item-row"><div class="item-content"><span class="name-selected">${pName} ${photo}${pUvas ? `<br><small style="font-size:0.85em; opacity:0.8; font-style:italic; display:block; margin-top:2px;">${pUvas}</small>` : ''}</span>${sName ? `<span class="name-secondary">${sName}${sUvas ? `<br><small style="font-size:0.85em; opacity:0.8; font-style:italic;">${sUvas}</small>` : ''}</span>` : ''}<div class="alergenos-list">${alergenos}</div></div><div class="price-box">${price}</div></div>`;
 }
 
 async function openGallery(base) {
@@ -187,22 +169,17 @@ async function openGallery(base) {
     updateModal();
     document.getElementById('photo-modal').style.display = 'flex';
 }
-
 function updateModal() {
     document.getElementById('modal-img').src = `${currentGalleryPath}0${currentPhotoIndex}.webp`;
     document.getElementById('prev-btn').style.display = currentPhotoIndex > 1 ? 'block' : 'none';
     document.getElementById('next-btn').style.display = currentPhotoIndex < maxPhotosFound ? 'block' : 'none';
 }
-
 function changePhoto(n) { currentPhotoIndex += n; updateModal(); }
 function closeModal() { document.getElementById('photo-modal').style.display = 'none'; }
-
 function changeLanguage(l) {
     currentLang = l;
     document.querySelectorAll('#language-selector button').forEach(b => b.classList.toggle('active', b.id === `btn-${l}`));
     renderCategories(); renderMenu();
 }
-
 function filterCategory(id) { currentCat = id; renderCategories(); renderMenu(); window.scrollTo(0,0); }
-
 init();
