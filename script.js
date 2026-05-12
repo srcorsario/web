@@ -3,6 +3,11 @@ const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9rPlxpax2lE0r
 let currentLang = 'ES', currentCat = '12', allData = [];
 let currentGalleryPath = '', currentPhotoIndex = 1, maxPhotosFound = 1;
 
+// Variables para el sistema de precarga inteligente
+let preloadQueue = [];
+let isPreloading = false;
+let stopCurrentPreload = false;
+
 const categoriesList = [
     { id: '12', ES: 'Sugerencias', EN: 'Suggestions', DE: 'Vorschläge', FR: 'Suggestions', IT: 'Suggerimenti' },
     { id: '1', ES: 'Entrantes', EN: 'Starters', DE: 'Vorspeisen', FR: 'Entrées', IT: 'Antipasti' },
@@ -49,6 +54,9 @@ async function init() {
             renderCategories();
             renderMenu();
             document.querySelectorAll('#language-selector button').forEach(b => b.classList.toggle('active', b.id === `btn-${currentLang}`));
+            
+            // Iniciamos la precarga inteligente por primera vez
+            managePreload();
         }
     } catch (e) { console.error("Error:", e); }
 }
@@ -56,13 +64,10 @@ async function init() {
 function parseCSV(text) {
     const rows = [];
     const lines = text.split(/\r?\n(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-    
     for (let i = 1; i < lines.length; i++) {
         const col = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
         if (col.length < 11) continue;
-        
         const clean = (val) => val ? val.replace(/^"|"$/g, '').trim() : "";
-        
         rows.push({
             id: clean(col[0]),
             precio: clean(col[1]).replace(',', '.'),
@@ -97,7 +102,6 @@ function renderMenu() {
     });
 
     let currentActiveSubCatName = "";
-
     filtered.forEach(item => {
         const idNum = parseInt(item.id);
         if (currentCat.startsWith('13')) {
@@ -122,62 +126,97 @@ function renderMenu() {
 }
 
 function generateItemHtml(item, isGuarni = false) {
-    // Función auxiliar para separar el nombre de las uvas por las dobles barras //
     const processName = (text) => {
         if (!text) return { name: '', uvas: '' };
-        // Dividimos por // y limpiamos espacios
         const parts = text.split('//').map(p => p.trim()).filter(p => p !== "");
-        return {
-            name: parts[0] || '',
-            uvas: parts[1] || ''
-        };
+        return { name: parts[0] || '', uvas: parts[1] || '' };
     };
-
-    // Procesamos el idioma actual y el secundario (ES)
     const currentData = processName(item[`nombre_${currentLang.toLowerCase()}`] || item.nombre_es);
     const secondaryData = processName(item.nombre_es);
-
     const pName = currentData.name;
     const pUvas = currentData.uvas;
-    
     const sName = currentLang !== 'ES' ? secondaryData.name : '';
     const sUvas = currentLang !== 'ES' ? secondaryData.uvas : '';
-
     const price = (isGuarni && parseInt(item.id) < 6100) ? '' : (parseFloat(item.precio) > 0 ? `${parseFloat(item.precio).toFixed(2)}€` : '');
     const alergenos = item.alergenos.map(a => `<img src="imagenes/alergenos/${a}.webp" onerror="this.style.display='none'">`).join('');
-    
     let photo = '';
     if (item.archivo && item.archivo.includes('01.webp')) {
         const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
         photo = `<span class="emoji-photo" onclick="openGallery('${base}')">📸</span>`;
     }
+    return `<div class="item-row"><div class="item-content"><span class="name-selected">${pName} ${photo}${pUvas ? `<br><small style="font-size:0.85em; opacity:0.8; font-style:italic; display:block; margin-top:2px;">${pUvas}</small>` : ''}</span>${sName ? `<span class="name-secondary">${sName}${sUvas ? `<br><small style="font-size:0.85em; opacity:0.8; font-style:italic;">${sUvas}</small>` : ''}</span>` : ''}<div class="alergenos-list">${alergenos}</div></div><div class="price-box">${price}</div></div>`;
+}
 
-    return `
-        <div class="item-row">
-            <div class="item-content">
-                <span class="name-selected">
-                    ${pName} ${photo}
-                    ${pUvas ? `<br><small style="font-size:0.85em; opacity:0.8; font-style:italic; display:block; margin-top:2px;">${pUvas}</small>` : ''}
-                </span>
-                ${sName ? `
-                <span class="name-secondary">
-                    ${sName}
-                    ${sUvas ? `<br><small style="font-size:0.85em; opacity:0.8; font-style:italic;">${sUvas}</small>` : ''}
-                </span>` : ''}
-                <div class="alergenos-list">${alergenos}</div>
-            </div>
-            <div class="price-box">${price}</div>
-        </div>`;
+// LÓGICA DE PRECARGA INTELIGENTE
+async function managePreload() {
+    stopCurrentPreload = true; // Señal para detener procesos previos si los hay
+    preloadQueue = [];
+    
+    // 1. Priorizamos Categoría Actual - Todas las 01.webp
+    const currentItems = allData.filter(i => i.id.toString().startsWith(currentCat) && i.archivo && i.activa === 'SI');
+    currentItems.forEach(item => {
+        const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
+        preloadQueue.push(`${base}01.webp`);
+    });
+
+    // 2. Después, Categoría Actual - Fotos 02, 03, 04
+    for (let n = 2; n <= 4; n++) {
+        currentItems.forEach(item => {
+            const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
+            preloadQueue.push(`${base}0${n}.webp`);
+        });
+    }
+
+    // 3. Al final, resto de categorías (solo 01.webp)
+    allData.filter(i => !i.id.toString().startsWith(currentCat) && i.archivo && i.activa === 'SI').forEach(item => {
+        const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
+        preloadQueue.push(`${base}01.webp`);
+    });
+
+    processPreloadQueue();
+}
+
+async function processPreloadQueue() {
+    if (isPreloading) return;
+    isPreloading = true;
+    stopCurrentPreload = false;
+
+    while (preloadQueue.length > 0) {
+        if (stopCurrentPreload) break;
+        const url = preloadQueue.shift();
+        
+        await new Promise(resolve => {
+            const img = new Image();
+            img.onload = img.onerror = resolve; // Avanzar aunque falle
+            img.src = url;
+        });
+    }
+    isPreloading = false;
 }
 
 async function openGallery(base) {
+    stopCurrentPreload = true; // Modo Turbo: paramos precarga de fondo
     currentGalleryPath = base; currentPhotoIndex = 1; maxPhotosFound = 1;
-    for (let i = 2; i <= 4; i++) {
-        const exists = await new Promise(r => { const img = new Image(); img.onload = () => r(true); img.onerror = () => r(false); img.src = `${base}0${i}.webp`; });
-        if (exists) maxPhotosFound = i; else break;
-    }
+    
+    // Mostramos la primera inmediatamente
     updateModal();
     document.getElementById('photo-modal').style.display = 'flex';
+
+    // Cargamos el carrusel específico con prioridad absoluta
+    for (let i = 2; i <= 4; i++) {
+        const exists = await new Promise(r => { 
+            const img = new Image(); 
+            img.onload = () => r(true); 
+            img.onerror = () => r(false); 
+            img.src = `${base}0${i}.webp`; 
+        });
+        if (exists) {
+            maxPhotosFound = i;
+            updateModal();
+        } else break;
+    }
+    // Una vez cerrado o terminado el carrusel, la precarga podría retomarse si fuera necesario
+    // pero dejamos que el usuario navegue.
 }
 
 function updateModal() {
@@ -187,7 +226,10 @@ function updateModal() {
 }
 
 function changePhoto(n) { currentPhotoIndex += n; updateModal(); }
-function closeModal() { document.getElementById('photo-modal').style.display = 'none'; }
+function closeModal() { 
+    document.getElementById('photo-modal').style.display = 'none';
+    managePreload(); // Al cerrar el modal, retomamos la precarga de fondo
+}
 
 function changeLanguage(l) {
     currentLang = l;
@@ -195,6 +237,12 @@ function changeLanguage(l) {
     renderCategories(); renderMenu();
 }
 
-function filterCategory(id) { currentCat = id; renderCategories(); renderMenu(); window.scrollTo(0,0); }
+function filterCategory(id) { 
+    currentCat = id; 
+    renderCategories(); 
+    renderMenu(); 
+    window.scrollTo(0,0); 
+    managePreload(); // Al cambiar categoría, reordenamos la cola
+}
 
 init();
