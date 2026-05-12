@@ -1,5 +1,5 @@
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9rPlxpax2lE0rN97c6Hoy_OxUwREqRb48juEBr9C91ZFY2UvaKgC8JdiRcwDrtBErXFVmFRh0Zr5e/pub?gid=0&single=true&output=csv';
-const APP_VERSION = 'v2.0'; 
+const APP_VERSION = 'v2.1'; 
 
 let allData = [];
 let currentLang = 'ES', currentCat = '12';
@@ -7,7 +7,7 @@ let currentGalleryPath = '', currentPhotoIndex = 1, maxPhotosFound = 1;
 
 let preloadQueue = [];
 let isPreloading = false;
-let currentPreloadSession = 0; // Control de sesión para evitar clics dobles
+let currentPreloadSession = 0;
 
 const categoriesList = [
     { id: '12', ES: 'Sugerencias', EN: 'Suggestions', DE: 'Vorschläge', FR: 'Suggestions', IT: 'Suggerimenti' },
@@ -136,23 +136,20 @@ function generateItemHtml(item, isGuarni = false) {
 }
 
 async function managePreload() {
-    currentPreloadSession++; // Nueva sesión, invalida la anterior
+    currentPreloadSession++;
     const mySession = currentPreloadSession;
     isPreloading = false; 
     preloadQueue = [];
     
     const sortedData = [...allData].sort((a, b) => parseInt(a.id) - parseInt(b.id));
-    const currentItems = sortedData.filter(i => i.id.toString().startsWith(currentCat) && i.archivo && i.activa === 'SI');
-    const otherFoodItems = sortedData.filter(i => !i.id.toString().startsWith(currentCat) && parseInt(i.id) < 13000 && i.archivo && i.activa === 'SI');
-    const otherWineItems = sortedData.filter(i => !i.id.toString().startsWith(currentCat) && parseInt(i.id) >= 13000 && i.archivo && i.activa === 'SI');
+    const isCurrentWine = parseInt(currentCat) >= 13;
 
-    // 1. Prioridad Oro: Categoría en pantalla (Fotos 01)
+    // 1. CATEGORÍA ACTUAL (SIEMPRE PRIMERO)
+    const currentItems = sortedData.filter(i => i.id.toString().startsWith(currentCat) && i.archivo && i.activa === 'SI');
     currentItems.forEach(item => {
         preloadQueue.push({ base: `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`, n: 1 });
     });
-
-    // 2. Prioridad Oro: Categoría en pantalla (Fotos 02-04) SOLO SI NO ES VINO
-    if (parseInt(currentCat) < 13) {
+    if (!isCurrentWine) {
         for (let n = 2; n <= 4; n++) {
             currentItems.forEach(item => {
                 preloadQueue.push({ base: `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`, n: n });
@@ -160,19 +157,22 @@ async function managePreload() {
         }
     }
 
-    // 3. Prioridad Plata: Comida fuera de pantalla (Todas las 01 primero)
+    // 2. BLOQUE DE COMIDA (SI NO ES LA ACTUAL)
+    const otherFoodItems = sortedData.filter(i => !i.id.toString().startsWith(currentCat) && parseInt(i.id) < 13000 && i.archivo && i.activa === 'SI');
+    
+    // Todas las 01 de comida
     otherFoodItems.forEach(item => {
         preloadQueue.push({ base: `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`, n: 1 });
     });
-
-    // 4. Prioridad Plata: Comida fuera de pantalla (Todas las 02-04 después)
+    // Todas las 02-04 de comida (BLOQUEO: Esto va ANTES que cualquier vino)
     for (let n = 2; n <= 4; n++) {
         otherFoodItems.forEach(item => {
             preloadQueue.push({ base: `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`, n: n });
         });
     }
 
-    // 5. Prioridad Bronce: Vinos fuera de pantalla (Solo 01)
+    // 3. BLOQUE DE VINOS (SOLO AL FINAL DE TODO)
+    const otherWineItems = sortedData.filter(i => !i.id.toString().startsWith(currentCat) && parseInt(i.id) >= 13000 && i.archivo && i.activa === 'SI');
     otherWineItems.forEach(item => {
         preloadQueue.push({ base: `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`, n: 1 });
     });
@@ -185,22 +185,18 @@ async function processPreloadQueue(session) {
     isPreloading = true;
 
     while (preloadQueue.length > 0) {
-        // Si la sesión ya no es la actual, detenemos este bucle para siempre
         if (session !== currentPreloadSession) {
             isPreloading = false;
             return;
         }
-
         const task = preloadQueue.shift();
         const url = `${task.base}0${task.n}.webp`;
-        
         const success = await new Promise(resolve => {
             const img = new Image();
             img.onload = () => resolve(true);
             img.onerror = () => resolve(false);
             img.src = url;
         });
-
         if (!success && task.n < 4) {
             preloadQueue = preloadQueue.filter(t => t.base !== task.base);
         }
@@ -209,11 +205,10 @@ async function processPreloadQueue(session) {
 }
 
 async function openGallery(base) {
-    currentPreloadSession++; // Pausamos cola general
+    currentPreloadSession++; 
     currentGalleryPath = base; currentPhotoIndex = 1; maxPhotosFound = 1;
     updateModal();
     document.getElementById('photo-modal').style.display = 'flex';
-
     for (let i = 2; i <= 4; i++) {
         const exists = await new Promise(r => { 
             const img = new Image(); 
@@ -221,15 +216,9 @@ async function openGallery(base) {
             img.onerror = () => r(false); 
             img.src = `${base}0${i}.webp`; 
         });
-        if (exists) {
-            maxPhotosFound = i;
-            updateModal();
-        } else break;
+        if (exists) { maxPhotosFound = i; updateModal(); } else break;
     }
-    
-    // Al terminar de buscar, reanudamos la cola general con una nueva sesión
-    const myNewSession = currentPreloadSession;
-    processPreloadQueue(myNewSession);
+    processPreloadQueue(currentPreloadSession);
 }
 
 function updateModal() {
@@ -240,9 +229,7 @@ function updateModal() {
 
 function changePhoto(n) { currentPhotoIndex += n; updateModal(); }
 
-function closeModal() { 
-    document.getElementById('photo-modal').style.display = 'none';
-}
+function closeModal() { document.getElementById('photo-modal').style.display = 'none'; }
 
 function changeLanguage(l) {
     currentLang = l;
