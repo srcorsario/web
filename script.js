@@ -1,5 +1,5 @@
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9rPlxpax2lE0rN97c6Hoy_OxUwREqRb48juEBr9C91ZFY2UvaKgC8JdiRcwDrtBErXFVmFRh0Zr5e/pub?gid=0&single=true&output=csv';
-const APP_VERSION = 'v1.2'; 
+const APP_VERSION = 'v1.3'; 
 
 let allData = [];
 let currentLang = 'ES', currentCat = '12';
@@ -150,28 +150,38 @@ async function managePreload() {
     stopCurrentPreload = true; 
     preloadQueue = [];
     
-    // 1. Filtramos y ORDENAMOS por ID numérico para que siempre sigan un orden lógico
+    // Ordenar base por ID numérico
     const sortedData = [...allData].sort((a, b) => parseInt(a.id) - parseInt(b.id));
 
+    // Separar por Prioridad: Actual, Comida (resto) y Vinos (13xxx)
     const currentItems = sortedData.filter(i => i.id.toString().startsWith(currentCat) && i.archivo && i.activa === 'SI');
-    const otherItems = sortedData.filter(i => !i.id.toString().startsWith(currentCat) && i.archivo && i.activa === 'SI');
+    const foodItems = sortedData.filter(i => !i.id.toString().startsWith(currentCat) && !i.id.toString().startsWith('13') && i.archivo && i.activa === 'SI');
+    const wineItems = sortedData.filter(i => !i.id.toString().startsWith(currentCat) && i.id.toString().startsWith('13') && i.archivo && i.activa === 'SI');
 
-    // Prioridad 1: Fotos 01 de la categoría actual
+    // 1. Prioridad: Categoría Actual (01)
     currentItems.forEach(item => {
         const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
         preloadQueue.push({ base, n: 1 });
     });
 
-    // Prioridad 2: Fotos 02-04 de la categoría actual
-    for (let n = 2; n <= 4; n++) {
-        currentItems.forEach(item => {
-            const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
-            preloadQueue.push({ base, n: n });
-        });
+    // 2. Prioridad: Categoría Actual (02-04) solo si NO es vino
+    if (!currentCat.startsWith('13')) {
+        for (let n = 2; n <= 4; n++) {
+            currentItems.forEach(item => {
+                const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
+                preloadQueue.push({ base, n: n });
+            });
+        }
     }
 
-    // Prioridad 3: Todo lo demás (fotos 01), respetando el orden numérico del ID
-    otherItems.forEach(item => {
+    // 3. Prioridad: Resto de Comida (01)
+    foodItems.forEach(item => {
+        const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
+        preloadQueue.push({ base, n: 1 });
+    });
+
+    // 4. Prioridad: Vinos (01) - SIEMPRE AL FINAL
+    wineItems.forEach(item => {
         const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
         preloadQueue.push({ base, n: 1 });
     });
@@ -212,6 +222,7 @@ async function openGallery(base) {
     updateModal();
     document.getElementById('photo-modal').style.display = 'flex';
 
+    // Aquí siempre busca las 4 fotos (aunque sea vino), porque el usuario ha pedido verlas
     for (let i = 2; i <= 4; i++) {
         const exists = await new Promise(r => { 
             const img = new Image(); 
