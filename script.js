@@ -1,5 +1,5 @@
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9rPlxpax2lE0rN97c6Hoy_OxUwREqRb48juEBr9C91ZFY2UvaKgC8JdiRcwDrtBErXFVmFRh0Zr5e/pub?gid=0&single=true&output=csv';
-const APP_VERSION = 'v2.6'; 
+const APP_VERSION = 'v2.8'; 
 
 let allData = [];
 let currentLang = 'ES', currentCat = '12';
@@ -174,18 +174,18 @@ async function managePreload() {
 
     const sortedData = [...allData].sort((a, b) => parseInt(a.id) - parseInt(b.id));
 
-    // Solo añadimos la foto 01 de cada plato relevante a la cola inicial
-    // Las fotos 02, 03, 04 se intentarán secuencialmente durante el procesamiento
+    // 1. CARGA PRIORITARIA: Foto 01 de la categoría actual
     const currentItems = sortedData.filter(i => isItemInCategory(i.id, currentCat) && i.archivo && i.activa === 'SI');
     currentItems.forEach(item => {
         const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
-        preloadQueue.push({ base, n: 1 });
+        preloadQueue.push({ base, n: 1, priority: true });
     });
 
+    // 2. CARGA SECUNDARIA: Foto 01 de todo lo demás
     const otherFoodItems = sortedData.filter(i => !isItemInCategory(i.id, currentCat) && parseInt(i.id) < 13000 && i.archivo && i.activa === 'SI');
     otherFoodItems.forEach(item => {
         const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
-        preloadQueue.push({ base, n: 1 });
+        preloadQueue.push({ base, n: 1, priority: false });
     });
 
     processPreloadQueue(mySession);
@@ -201,10 +201,15 @@ async function processPreloadQueue(session) {
         const task = preloadQueue.shift();
         const url = `${task.base}0${task.n}.webp`;
 
-        // Si ya sabemos el resultado de esta URL, decidimos si seguir con la siguiente o no
+        // Lógica de salto si ya está verificado
         if (verifiedImages[url] !== undefined) {
             if (verifiedImages[url] === true && task.n < 4) {
-                preloadQueue.unshift({ base: task.base, n: task.n + 1 });
+                // Si es prioridad (cat actual), la subimos arriba para completar la categoría antes de otras 01
+                if (task.priority) {
+                    preloadQueue.unshift({ base: task.base, n: task.n + 1, priority: true });
+                } else {
+                    preloadQueue.push({ base: task.base, n: task.n + 1, priority: false });
+                }
             }
             continue;
         }
@@ -218,11 +223,17 @@ async function processPreloadQueue(session) {
 
         verifiedImages[url] = success;
 
-        // SECUENCIALIDAD ESTRICTA: Si esta existe y es menor a 4, intentamos la siguiente inmediatamente
+        // Si la imagen existe, programamos la siguiente profundidad (02, 03, 04)
         if (success && task.n < 4) {
-            preloadQueue.unshift({ base: task.base, n: task.n + 1 });
+            if (task.priority) {
+                // REGLA CLAVE: Si es de la categoría actual, se pone PRIMERO en la cola
+                // para que termine la profundidad de esta categoría antes de saltar a otra 01.
+                preloadQueue.unshift({ base: task.base, n: task.n + 1, priority: true });
+            } else {
+                // Si no es prioridad, va al final para no estorbar
+                preloadQueue.push({ base: task.base, n: task.n + 1, priority: false });
+            }
         }
-        // Si NO existe (success = false), el bucle simplemente pasa al siguiente plato de la cola
     }
     isPreloading = false;
 }
@@ -236,7 +247,6 @@ async function openGallery(base) {
     updateModal();
     document.getElementById('photo-modal').style.display = 'flex';
 
-    // Búsqueda secuencial estricta para la galería abierta
     for (let i = 2; i <= 4; i++) {
         const url = `${base}0${i}.webp`;
         let exists = verifiedImages[url];
@@ -255,7 +265,6 @@ async function openGallery(base) {
             maxPhotosFound = i; 
             updateModal(); 
         } else {
-            // Si la 02 falla, no se comprueba la 03 ni la 04
             break; 
         }
     }
