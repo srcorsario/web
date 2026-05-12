@@ -103,16 +103,19 @@ function renderMenu() {
     });
 
     let currentActiveSubCatName = "";
-    let lastFolder = ""; // Nueva variable para detectar cambio de grupo
+    let lastIdGroup = 0; // Para detectar cambio de centena en ID
 
     filtered.forEach(item => {
         const idNum = parseInt(item.id);
 
-        // LÓGICA DE SEPARACIÓN EN SUGERENCIAS (CATEGORÍA 12)
-        if (currentCat === '12' && lastFolder !== "" && lastFolder !== item.carpeta) {
-            grid.innerHTML += `<div class="spacer-categoria"></div>`;
+        // DOBLE LÍNEA PARA SUGERENCIAS (CATEGORÍA 12)
+        if (currentCat === '12') {
+            const currentGroup = Math.floor(idNum / 100);
+            if (lastIdGroup !== 0 && lastIdGroup !== currentGroup) {
+                grid.innerHTML += `<div class="double-separator"></div>`;
+            }
+            lastIdGroup = currentGroup;
         }
-        lastFolder = item.carpeta;
 
         if (idNum >= 13100 && idNum <= 14499) {
             const foundSub = wineSubCats.find(s => idNum >= s.start && idNum <= s.end);
