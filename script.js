@@ -1,4 +1,5 @@
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9rPlxpax2lE0rN97c6Hoy_OxUwREqRb48juEBr9C91ZFY2UvaKgC8JdiRcwDrtBErXFVmFRh0Zr5e/pub?gid=0&single=true&output=csv';
+const APP_VERSION = 'v1.1'; // Cambia esto para ver la actualización en la web
 
 let currentLang = 'ES', currentCat = '12', allData = [];
 let currentGalleryPath = '', currentPhotoIndex = 1, maxPhotosFound = 1;
@@ -90,7 +91,10 @@ function renderCategories() {
 function renderMenu() {
     const grid = document.getElementById('items-list'), title = document.getElementById('current-category-name');
     const catObj = categoriesList.find(c => c.id === currentCat);
-    title.innerText = catObj ? catObj[currentLang] : "";
+    
+    // Mostramos el nombre de la categoría y la versión sutilmente al lado
+    title.innerHTML = `${catObj ? catObj[currentLang] : ""} <span style="font-size: 0.4em; opacity: 0.5; font-weight: normal; margin-left: 10px;">${APP_VERSION}</span>`;
+    
     grid.innerHTML = '';
 
     const filtered = allData.filter(item => {
@@ -177,7 +181,10 @@ async function processPreloadQueue() {
     stopCurrentPreload = false;
 
     while (preloadQueue.length > 0) {
-        if (stopCurrentPreload) break;
+        if (stopCurrentPreload) {
+            isPreloading = false;
+            return;
+        }
         const task = preloadQueue.shift();
         const url = `${task.base}0${task.n}.webp`;
         
@@ -196,12 +203,11 @@ async function processPreloadQueue() {
 }
 
 async function openGallery(base) {
-    stopCurrentPreload = true; // Detenemos la cola de fondo inmediatamente
+    stopCurrentPreload = true; 
     currentGalleryPath = base; currentPhotoIndex = 1; maxPhotosFound = 1;
     updateModal();
     document.getElementById('photo-modal').style.display = 'flex';
 
-    // Prioridad absoluta: buscar fotos del carrusel actual
     for (let i = 2; i <= 4; i++) {
         const exists = await new Promise(r => { 
             const img = new Image(); 
@@ -212,10 +218,8 @@ async function openGallery(base) {
         if (exists) {
             maxPhotosFound = i;
             updateModal();
-        } else break; // Si falta 02, no buscamos 03 ni 04
+        } else break;
     }
-    // Carrusel listo: reanudamos la descarga de fondo aunque el modal siga abierto
-    processPreloadQueue();
 }
 
 function updateModal() {
@@ -225,15 +229,18 @@ function updateModal() {
 }
 
 function changePhoto(n) { currentPhotoIndex += n; updateModal(); }
+
 function closeModal() { 
     document.getElementById('photo-modal').style.display = 'none';
+    isPreloading = false; 
+    processPreloadQueue();
 }
 
 function changeLanguage(l) {
     currentLang = l;
     document.querySelectorAll('#language-selector button').forEach(b => b.classList.toggle('active', b.id === `btn-${l}`));
     renderCategories(); renderMenu();
-    managePreload(); // Recalcular cola con prioridad en categoría actual
+    managePreload();
 }
 
 function filterCategory(id) { 
