@@ -1,7 +1,8 @@
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9rPlxpax2lE0rN97c6Hoy_OxUwREqRb48juEBr9C91ZFY2UvaKgC8JdiRcwDrtBErXFVmFRh0Zr5e/pub?gid=0&single=true&output=csv';
-const APP_VERSION = 'v1.1'; // Cambia esto para ver la actualización en la web
+const APP_VERSION = 'v1.2'; 
 
-let currentLang = 'ES', currentCat = '12', allData = [];
+let allData = [];
+let currentLang = 'ES', currentCat = '12';
 let currentGalleryPath = '', currentPhotoIndex = 1, maxPhotosFound = 1;
 
 let preloadQueue = [];
@@ -91,10 +92,7 @@ function renderCategories() {
 function renderMenu() {
     const grid = document.getElementById('items-list'), title = document.getElementById('current-category-name');
     const catObj = categoriesList.find(c => c.id === currentCat);
-    
-    // Mostramos el nombre de la categoría y la versión sutilmente al lado
     title.innerHTML = `${catObj ? catObj[currentLang] : ""} <span style="font-size: 0.4em; opacity: 0.5; font-weight: normal; margin-left: 10px;">${APP_VERSION}</span>`;
-    
     grid.innerHTML = '';
 
     const filtered = allData.filter(item => {
@@ -152,14 +150,19 @@ async function managePreload() {
     stopCurrentPreload = true; 
     preloadQueue = [];
     
-    const currentItems = allData.filter(i => i.id.toString().startsWith(currentCat) && i.archivo && i.activa === 'SI');
-    const otherItems = allData.filter(i => !i.id.toString().startsWith(currentCat) && i.archivo && i.activa === 'SI');
+    // 1. Filtramos y ORDENAMOS por ID numérico para que siempre sigan un orden lógico
+    const sortedData = [...allData].sort((a, b) => parseInt(a.id) - parseInt(b.id));
 
+    const currentItems = sortedData.filter(i => i.id.toString().startsWith(currentCat) && i.archivo && i.activa === 'SI');
+    const otherItems = sortedData.filter(i => !i.id.toString().startsWith(currentCat) && i.archivo && i.activa === 'SI');
+
+    // Prioridad 1: Fotos 01 de la categoría actual
     currentItems.forEach(item => {
         const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
         preloadQueue.push({ base, n: 1 });
     });
 
+    // Prioridad 2: Fotos 02-04 de la categoría actual
     for (let n = 2; n <= 4; n++) {
         currentItems.forEach(item => {
             const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
@@ -167,6 +170,7 @@ async function managePreload() {
         });
     }
 
+    // Prioridad 3: Todo lo demás (fotos 01), respetando el orden numérico del ID
     otherItems.forEach(item => {
         const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
         preloadQueue.push({ base, n: 1 });
