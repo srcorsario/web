@@ -196,11 +196,12 @@ async function processPreloadQueue() {
 }
 
 async function openGallery(base) {
-    stopCurrentPreload = true; 
+    stopCurrentPreload = true; // Detenemos la cola de fondo inmediatamente
     currentGalleryPath = base; currentPhotoIndex = 1; maxPhotosFound = 1;
     updateModal();
     document.getElementById('photo-modal').style.display = 'flex';
 
+    // Prioridad absoluta: buscar fotos del carrusel actual
     for (let i = 2; i <= 4; i++) {
         const exists = await new Promise(r => { 
             const img = new Image(); 
@@ -211,8 +212,10 @@ async function openGallery(base) {
         if (exists) {
             maxPhotosFound = i;
             updateModal();
-        } else break;
+        } else break; // Si falta 02, no buscamos 03 ni 04
     }
+    // Carrusel listo: reanudamos la descarga de fondo aunque el modal siga abierto
+    processPreloadQueue();
 }
 
 function updateModal() {
@@ -224,13 +227,13 @@ function updateModal() {
 function changePhoto(n) { currentPhotoIndex += n; updateModal(); }
 function closeModal() { 
     document.getElementById('photo-modal').style.display = 'none';
-    managePreload(); 
 }
 
 function changeLanguage(l) {
     currentLang = l;
     document.querySelectorAll('#language-selector button').forEach(b => b.classList.toggle('active', b.id === `btn-${l}`));
     renderCategories(); renderMenu();
+    managePreload(); // Recalcular cola con prioridad en categoría actual
 }
 
 function filterCategory(id) { 
