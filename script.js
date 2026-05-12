@@ -1,5 +1,5 @@
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9rPlxpax2lE0rN97c6Hoy_OxUwREqRb48juEBr9C91ZFY2UvaKgC8JdiRcwDrtBErXFVmFRh0Zr5e/pub?gid=0&single=true&output=csv';
-const APP_VERSION = 'v1.8'; 
+const APP_VERSION = 'v1.9'; 
 
 let allData = [];
 let currentLang = 'ES', currentCat = '12';
@@ -150,35 +150,20 @@ async function managePreload() {
     stopCurrentPreload = true; 
     preloadQueue = [];
     
-    // Ordenar base por ID
     const sortedData = [...allData].sort((a, b) => parseInt(a.id) - parseInt(b.id));
 
-    // Bloque 1: Categoría Actual (Prioridad máxima)
+    // SEPARACIÓN DE DATOS
     const currentItems = sortedData.filter(i => i.id.toString().startsWith(currentCat) && i.archivo && i.activa === 'SI');
-    
-    // Bloque 2: Comida restante (IDs menores a 13000 que no son la actual)
-    const otherFoodItems = sortedData.filter(i => 
-        !i.id.toString().startsWith(currentCat) && 
-        parseInt(i.id) < 13000 && 
-        i.archivo && i.activa === 'SI'
-    );
+    const otherFoodItems = sortedData.filter(i => !i.id.toString().startsWith(currentCat) && parseInt(i.id) < 13000 && i.archivo && i.activa === 'SI');
+    const otherWineItems = sortedData.filter(i => !i.id.toString().startsWith(currentCat) && parseInt(i.id) >= 13000 && i.archivo && i.activa === 'SI');
 
-    // Bloque 3: Vinos (IDs 13000+ que no son la actual)
-    const otherWineItems = sortedData.filter(i => 
-        !i.id.toString().startsWith(currentCat) && 
-        parseInt(i.id) >= 13000 && 
-        i.archivo && i.activa === 'SI'
-    );
-
-    // --- COLA ESTRICTA ---
-
-    // 1. Fotos 01 de la categoría actual
+    // --- BLOQUE 1: CATEGORÍA EN PANTALLA ---
+    // 1A. Fotos 01
     currentItems.forEach(item => {
         const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
         preloadQueue.push({ base, n: 1 });
     });
-
-    // 2. Fotos 02-04 de la categoría actual (Solo si no es vino)
+    // 1B. Fotos 02-04 (Solo si no es vino)
     if (parseInt(currentCat) < 13) {
         for (let n = 2; n <= 4; n++) {
             currentItems.forEach(item => {
@@ -188,13 +173,22 @@ async function managePreload() {
         }
     }
 
-    // 3. Fotos 01 del resto de COMIDA (Arroces, entrantes, etc.)
+    // --- BLOQUE 2: RESTO DE COMIDA (FUERA DE PANTALLA) ---
+    // 2A. Primero todas las 01 de comida
     otherFoodItems.forEach(item => {
         const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
         preloadQueue.push({ base, n: 1 });
     });
+    // 2B. Luego todas las 02-04 de comida
+    for (let n = 2; n <= 4; n++) {
+        otherFoodItems.forEach(item => {
+            const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
+            preloadQueue.push({ base, n: n });
+        });
+    }
 
-    // 4. Fotos 01 de VINOS (Solo al final de todo)
+    // --- BLOQUE 3: VINOS (FUERA DE PANTALLA) ---
+    // Solo foto 01, siempre al final de todo
     otherWineItems.forEach(item => {
         const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
         preloadQueue.push({ base, n: 1 });
@@ -223,7 +217,7 @@ async function processPreloadQueue() {
             img.src = url;
         });
 
-        // Freno secuencial
+        // Freno secuencial: Si falla 02, eliminar 03 y 04 de este item de la cola
         if (!success && task.n < 4) {
             preloadQueue = preloadQueue.filter(t => t.base !== task.base);
         }
