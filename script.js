@@ -1,5 +1,5 @@
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9rPlxpax2lE0rN97c6Hoy_OxUwREqRb48juEBr9C91ZFY2UvaKgC8JdiRcwDrtBErXFVmFRh0Zr5e/pub?gid=0&single=true&output=csv';
-const APP_VERSION = 'v2.3'; 
+const APP_VERSION = 'v2.4'; 
 
 let allData = [];
 let currentLang = 'ES', currentCat = '12';
@@ -134,7 +134,7 @@ function generateItemHtml(item, isGuarni = false) {
     const currentData = processName(item[`nombre_${currentLang.toLowerCase()}`] || item.nombre_es);
     const secondaryData = processName(item.nombre_es);
     const price = (isGuarni && parseInt(item.id) < 6100) ? '' : (parseFloat(item.precio) > 0 ? `${parseFloat(item.precio).toFixed(2)}€` : '');
-    const alergenos = item.alergenos.map(a => `<img src="imagenes/alergenos/${a}.webp" onerror="this.style.display='none'">`).join('');
+    const alergenosHtml = item.alergenos.map(a => `<img src="imagenes/alergenos/${a}.webp" onerror="this.style.display='none'">`).join('');
     
     let photoIcon = '';
     let clickAction = '';
@@ -144,7 +144,7 @@ function generateItemHtml(item, isGuarni = false) {
         const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
         photoIcon = `<span class="emoji-photo">📸</span>`;
         clickAction = `onclick="openGallery('${base}')"`;
-        clickableStyle = 'style="cursor: pointer;"'; // Hint visual
+        clickableStyle = 'style="cursor: pointer;"';
     }
 
     return `
@@ -159,8 +159,8 @@ function generateItemHtml(item, isGuarni = false) {
                         ${secondaryData.name}
                         ${secondaryData.uvas ? `<br><small style="font-size:0.85em; opacity:0.8; font-style:italic;">${secondaryData.uvas}</small>` : ''}
                     </span>` : ''}
+                <div class="alergenos-list">${alergenosHtml}</div>
             </div>
-            <div class="alergenos-list">${alergenos}</div>
             <div class="price-box">${price}</div>
         </div>`;
 }
