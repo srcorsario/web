@@ -1,5 +1,5 @@
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9rPlxpax2lE0rN97c6Hoy_OxUwREqRb48juEBr9C91ZFY2UvaKgC8JdiRcwDrtBErXFVmFRh0Zr5e/pub?gid=0&single=true&output=csv';
-const APP_VERSION = 'v1.9'; 
+const APP_VERSION = 'v2.0'; 
 
 let allData = [];
 let currentLang = 'ES', currentCat = '12';
@@ -7,7 +7,7 @@ let currentGalleryPath = '', currentPhotoIndex = 1, maxPhotosFound = 1;
 
 let preloadQueue = [];
 let isPreloading = false;
-let stopCurrentPreload = false;
+let currentPreloadSession = 0; // Control de sesión para evitar clics dobles
 
 const categoriesList = [
     { id: '12', ES: 'Sugerencias', EN: 'Suggestions', DE: 'Vorschläge', FR: 'Suggestions', IT: 'Suggerimenti' },
@@ -68,17 +68,10 @@ function parseCSV(text) {
         if (col.length < 11) continue;
         const clean = (val) => val ? val.replace(/^"|"$/g, '').trim() : "";
         rows.push({
-            id: clean(col[0]),
-            precio: clean(col[1]).replace(',', '.'),
-            activa: clean(col[2]).toUpperCase(),
-            nombre_es: clean(col[3]),
-            carpeta: clean(col[4]),
-            archivo: clean(col[5]),
+            id: clean(col[0]), precio: clean(col[1]).replace(',', '.'), activa: clean(col[2]).toUpperCase(),
+            nombre_es: clean(col[3]), carpeta: clean(col[4]), archivo: clean(col[5]),
             alergenos: col[6] ? clean(col[6]).split(',').map(a => a.trim()).filter(a => a) : [],
-            nombre_en: clean(col[7]),
-            nombre_de: clean(col[8]),
-            nombre_fr: clean(col[9]),
-            nombre_it: clean(col[10])
+            nombre_en: clean(col[7]), nombre_de: clean(col[8]), nombre_fr: clean(col[9]), nombre_it: clean(col[10])
         });
     }
     return rows;
@@ -132,10 +125,6 @@ function generateItemHtml(item, isGuarni = false) {
     };
     const currentData = processName(item[`nombre_${currentLang.toLowerCase()}`] || item.nombre_es);
     const secondaryData = processName(item.nombre_es);
-    const pName = currentData.name;
-    const pUvas = currentData.uvas;
-    const sName = currentLang !== 'ES' ? secondaryData.name : '';
-    const sUvas = currentLang !== 'ES' ? secondaryData.uvas : '';
     const price = (isGuarni && parseInt(item.id) < 6100) ? '' : (parseFloat(item.precio) > 0 ? `${parseFloat(item.precio).toFixed(2)}€` : '');
     const alergenos = item.alergenos.map(a => `<img src="imagenes/alergenos/${a}.webp" onerror="this.style.display='none'">`).join('');
     let photo = '';
@@ -143,70 +132,65 @@ function generateItemHtml(item, isGuarni = false) {
         const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
         photo = `<span class="emoji-photo" onclick="openGallery('${base}')">📸</span>`;
     }
-    return `<div class="item-row"><div class="item-content"><span class="name-selected">${pName} ${photo}${pUvas ? `<br><small style="font-size:0.85em; opacity:0.8; font-style:italic; display:block; margin-top:2px;">${pUvas}</small>` : ''}</span>${sName ? `<span class="name-secondary">${sName}${sUvas ? `<br><small style="font-size:0.85em; opacity:0.8; font-style:italic;">${sUvas}</small>` : ''}</span>` : ''}<div class="alergenos-list">${alergenos}</div></div><div class="price-box">${price}</div></div>`;
+    return `<div class="item-row"><div class="item-content"><span class="name-selected">${currentData.name} ${photo}${currentData.uvas ? `<br><small style="font-size:0.85em; opacity:0.8; font-style:italic; display:block; margin-top:2px;">${currentData.uvas}</small>` : ''}</span>${currentLang !== 'ES' ? `<span class="name-secondary">${secondaryData.name}${secondaryData.uvas ? `<br><small style="font-size:0.85em; opacity:0.8; font-style:italic;">${secondaryData.uvas}</small>` : ''}</span>` : ''}<div class="alergenos-list">${alergenos}</div></div><div class="price-box">${price}</div></div>`;
 }
 
 async function managePreload() {
-    stopCurrentPreload = true; 
+    currentPreloadSession++; // Nueva sesión, invalida la anterior
+    const mySession = currentPreloadSession;
+    isPreloading = false; 
     preloadQueue = [];
     
     const sortedData = [...allData].sort((a, b) => parseInt(a.id) - parseInt(b.id));
-
-    // SEPARACIÓN DE DATOS
     const currentItems = sortedData.filter(i => i.id.toString().startsWith(currentCat) && i.archivo && i.activa === 'SI');
     const otherFoodItems = sortedData.filter(i => !i.id.toString().startsWith(currentCat) && parseInt(i.id) < 13000 && i.archivo && i.activa === 'SI');
     const otherWineItems = sortedData.filter(i => !i.id.toString().startsWith(currentCat) && parseInt(i.id) >= 13000 && i.archivo && i.activa === 'SI');
 
-    // --- BLOQUE 1: CATEGORÍA EN PANTALLA ---
-    // 1A. Fotos 01
+    // 1. Prioridad Oro: Categoría en pantalla (Fotos 01)
     currentItems.forEach(item => {
-        const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
-        preloadQueue.push({ base, n: 1 });
+        preloadQueue.push({ base: `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`, n: 1 });
     });
-    // 1B. Fotos 02-04 (Solo si no es vino)
+
+    // 2. Prioridad Oro: Categoría en pantalla (Fotos 02-04) SOLO SI NO ES VINO
     if (parseInt(currentCat) < 13) {
         for (let n = 2; n <= 4; n++) {
             currentItems.forEach(item => {
-                const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
-                preloadQueue.push({ base, n: n });
+                preloadQueue.push({ base: `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`, n: n });
             });
         }
     }
 
-    // --- BLOQUE 2: RESTO DE COMIDA (FUERA DE PANTALLA) ---
-    // 2A. Primero todas las 01 de comida
+    // 3. Prioridad Plata: Comida fuera de pantalla (Todas las 01 primero)
     otherFoodItems.forEach(item => {
-        const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
-        preloadQueue.push({ base, n: 1 });
+        preloadQueue.push({ base: `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`, n: 1 });
     });
-    // 2B. Luego todas las 02-04 de comida
+
+    // 4. Prioridad Plata: Comida fuera de pantalla (Todas las 02-04 después)
     for (let n = 2; n <= 4; n++) {
         otherFoodItems.forEach(item => {
-            const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
-            preloadQueue.push({ base, n: n });
+            preloadQueue.push({ base: `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`, n: n });
         });
     }
 
-    // --- BLOQUE 3: VINOS (FUERA DE PANTALLA) ---
-    // Solo foto 01, siempre al final de todo
+    // 5. Prioridad Bronce: Vinos fuera de pantalla (Solo 01)
     otherWineItems.forEach(item => {
-        const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
-        preloadQueue.push({ base, n: 1 });
+        preloadQueue.push({ base: `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`, n: 1 });
     });
 
-    processPreloadQueue();
+    processPreloadQueue(mySession);
 }
 
-async function processPreloadQueue() {
+async function processPreloadQueue(session) {
     if (isPreloading) return;
     isPreloading = true;
-    stopCurrentPreload = false;
 
     while (preloadQueue.length > 0) {
-        if (stopCurrentPreload) {
+        // Si la sesión ya no es la actual, detenemos este bucle para siempre
+        if (session !== currentPreloadSession) {
             isPreloading = false;
             return;
         }
+
         const task = preloadQueue.shift();
         const url = `${task.base}0${task.n}.webp`;
         
@@ -217,7 +201,6 @@ async function processPreloadQueue() {
             img.src = url;
         });
 
-        // Freno secuencial: Si falla 02, eliminar 03 y 04 de este item de la cola
         if (!success && task.n < 4) {
             preloadQueue = preloadQueue.filter(t => t.base !== task.base);
         }
@@ -226,7 +209,7 @@ async function processPreloadQueue() {
 }
 
 async function openGallery(base) {
-    stopCurrentPreload = true; 
+    currentPreloadSession++; // Pausamos cola general
     currentGalleryPath = base; currentPhotoIndex = 1; maxPhotosFound = 1;
     updateModal();
     document.getElementById('photo-modal').style.display = 'flex';
@@ -244,8 +227,9 @@ async function openGallery(base) {
         } else break;
     }
     
-    isPreloading = false; 
-    processPreloadQueue();
+    // Al terminar de buscar, reanudamos la cola general con una nueva sesión
+    const myNewSession = currentPreloadSession;
+    processPreloadQueue(myNewSession);
 }
 
 function updateModal() {
@@ -258,7 +242,6 @@ function changePhoto(n) { currentPhotoIndex += n; updateModal(); }
 
 function closeModal() { 
     document.getElementById('photo-modal').style.display = 'none';
-    if (!isPreloading) processPreloadQueue();
 }
 
 function changeLanguage(l) {
@@ -270,8 +253,7 @@ function changeLanguage(l) {
 
 function filterCategory(id) { 
     currentCat = id; 
-    renderCategories(); 
-    renderMenu(); 
+    renderCategories(); renderMenu(); 
     window.scrollTo(0,0); 
     managePreload(); 
 }
