@@ -1,5 +1,5 @@
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9rPlxpax2lE0rN97c6Hoy_OxUwREqRb48juEBr9C91ZFY2UvaKgC8JdiRcwDrtBErXFVmFRh0Zr5e/pub?gid=0&single=true&output=csv';
-const APP_VERSION = 'v2.2'; 
+const APP_VERSION = 'v2.3'; 
 
 let allData = [];
 let currentLang = 'ES', currentCat = '12';
@@ -77,11 +77,9 @@ function parseCSV(text) {
     return rows;
 }
 
-// FUNCIÓN CLAVE: Valida si un ID pertenece exactamente a una categoría
 function isItemInCategory(itemId, catId) {
     const idStr = itemId.toString();
     const catStr = catId.toString();
-    // Evita que cat '1' atrape a '10', '11' o '13'
     if (idStr.length === 4 && catStr.length === 1) return idStr.startsWith(catStr);
     if (idStr.length === 5 && catStr.length === 2) return idStr.startsWith(catStr);
     if (idStr.length === 5 && catStr.length === 3) return idStr.startsWith(catStr);
@@ -137,12 +135,34 @@ function generateItemHtml(item, isGuarni = false) {
     const secondaryData = processName(item.nombre_es);
     const price = (isGuarni && parseInt(item.id) < 6100) ? '' : (parseFloat(item.precio) > 0 ? `${parseFloat(item.precio).toFixed(2)}€` : '');
     const alergenos = item.alergenos.map(a => `<img src="imagenes/alergenos/${a}.webp" onerror="this.style.display='none'">`).join('');
-    let photo = '';
+    
+    let photoIcon = '';
+    let clickAction = '';
+    let clickableStyle = '';
+
     if (item.archivo && item.archivo.includes('01.webp')) {
         const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
-        photo = `<span class="emoji-photo" onclick="openGallery('${base}')">📸</span>`;
+        photoIcon = `<span class="emoji-photo">📸</span>`;
+        clickAction = `onclick="openGallery('${base}')"`;
+        clickableStyle = 'style="cursor: pointer;"'; // Hint visual
     }
-    return `<div class="item-row"><div class="item-content"><span class="name-selected">${currentData.name} ${photo}${currentData.uvas ? `<br><small style="font-size:0.85em; opacity:0.8; font-style:italic; display:block; margin-top:2px;">${currentData.uvas}</small>` : ''}</span>${currentLang !== 'ES' ? `<span class="name-secondary">${secondaryData.name}${secondaryData.uvas ? `<br><small style="font-size:0.85em; opacity:0.8; font-style:italic;">${secondaryData.uvas}</small>` : ''}</span>` : ''}<div class="alergenos-list">${alergenos}</div></div><div class="price-box">${price}</div></div>`;
+
+    return `
+        <div class="item-row">
+            <div class="item-content" ${clickAction} ${clickableStyle}>
+                <span class="name-selected">
+                    ${currentData.name} ${photoIcon}
+                    ${currentData.uvas ? `<br><small style="font-size:0.85em; opacity:0.8; font-style:italic; display:block; margin-top:2px;">${currentData.uvas}</small>` : ''}
+                </span>
+                ${currentLang !== 'ES' ? `
+                    <span class="name-secondary">
+                        ${secondaryData.name}
+                        ${secondaryData.uvas ? `<br><small style="font-size:0.85em; opacity:0.8; font-style:italic;">${secondaryData.uvas}</small>` : ''}
+                    </span>` : ''}
+            </div>
+            <div class="alergenos-list">${alergenos}</div>
+            <div class="price-box">${price}</div>
+        </div>`;
 }
 
 async function managePreload() {
@@ -150,10 +170,8 @@ async function managePreload() {
     const mySession = currentPreloadSession;
     isPreloading = false; 
     preloadQueue = [];
-    
     const sortedData = [...allData].sort((a, b) => parseInt(a.id) - parseInt(b.id));
 
-    // 1. CATEGORÍA ACTUAL (Filtrado estricto)
     const currentItems = sortedData.filter(i => isItemInCategory(i.id, currentCat) && i.archivo && i.activa === 'SI');
     currentItems.forEach(item => {
         preloadQueue.push({ base: `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`, n: 1 });
@@ -166,7 +184,6 @@ async function managePreload() {
         }
     }
 
-    // 2. RESTO DE COMIDA (IDs < 13000, excluyendo la actual)
     const otherFoodItems = sortedData.filter(i => !isItemInCategory(i.id, currentCat) && parseInt(i.id) < 13000 && i.archivo && i.activa === 'SI');
     otherFoodItems.forEach(item => {
         preloadQueue.push({ base: `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`, n: 1 });
@@ -177,7 +194,6 @@ async function managePreload() {
         });
     }
 
-    // 3. VINOS (IDs >= 13000, excluyendo la actual)
     const otherWineItems = sortedData.filter(i => !isItemInCategory(i.id, currentCat) && parseInt(i.id) >= 13000 && i.archivo && i.activa === 'SI');
     otherWineItems.forEach(item => {
         preloadQueue.push({ base: `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`, n: 1 });
