@@ -1,5 +1,5 @@
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9rPlxpax2lE0rN97c6Hoy_OxUwREqRb48juEBr9C91ZFY2UvaKgC8JdiRcwDrtBErXFVmFRh0Zr5e/pub?gid=0&single=true&output=csv';
-const APP_VERSION = 'v1.7'; 
+const APP_VERSION = 'v1.8'; 
 
 let allData = [];
 let currentLang = 'ES', currentCat = '12';
@@ -150,27 +150,36 @@ async function managePreload() {
     stopCurrentPreload = true; 
     preloadQueue = [];
     
+    // Ordenar base por ID
     const sortedData = [...allData].sort((a, b) => parseInt(a.id) - parseInt(b.id));
 
-    // 1. ITEMS DE LA CATEGORÍA ACTUAL
+    // Bloque 1: Categoría Actual (Prioridad máxima)
     const currentItems = sortedData.filter(i => i.id.toString().startsWith(currentCat) && i.archivo && i.activa === 'SI');
     
-    // 2. ITEMS DE COMIDA (NO CATEGORÍA ACTUAL, NO VINOS)
-    const foodItems = sortedData.filter(i => !i.id.toString().startsWith(currentCat) && !i.id.toString().startsWith('13') && i.archivo && i.activa === 'SI');
-    
-    // 3. ITEMS DE VINOS (13XXX) QUE NO SON LA CATEGORÍA ACTUAL
-    const wineItems = sortedData.filter(i => !i.id.toString().startsWith(currentCat) && i.id.toString().startsWith('13') && i.archivo && i.activa === 'SI');
+    // Bloque 2: Comida restante (IDs menores a 13000 que no son la actual)
+    const otherFoodItems = sortedData.filter(i => 
+        !i.id.toString().startsWith(currentCat) && 
+        parseInt(i.id) < 13000 && 
+        i.archivo && i.activa === 'SI'
+    );
 
-    // --- CONSTRUCCIÓN DE LA COLA POR PRIORIDAD ESTRICTA ---
+    // Bloque 3: Vinos (IDs 13000+ que no son la actual)
+    const otherWineItems = sortedData.filter(i => 
+        !i.id.toString().startsWith(currentCat) && 
+        parseInt(i.id) >= 13000 && 
+        i.archivo && i.activa === 'SI'
+    );
 
-    // Prioridad 1: Categoría actual (Fotos 01)
+    // --- COLA ESTRICTA ---
+
+    // 1. Fotos 01 de la categoría actual
     currentItems.forEach(item => {
         const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
         preloadQueue.push({ base, n: 1 });
     });
 
-    // Prioridad 2: Categoría actual (Fotos 02-04) SOLO SI NO ES VINO
-    if (!currentCat.startsWith('13')) {
+    // 2. Fotos 02-04 de la categoría actual (Solo si no es vino)
+    if (parseInt(currentCat) < 13) {
         for (let n = 2; n <= 4; n++) {
             currentItems.forEach(item => {
                 const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
@@ -179,14 +188,14 @@ async function managePreload() {
         }
     }
 
-    // Prioridad 3: Resto de Comida (Fotos 01)
-    foodItems.forEach(item => {
+    // 3. Fotos 01 del resto de COMIDA (Arroces, entrantes, etc.)
+    otherFoodItems.forEach(item => {
         const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
         preloadQueue.push({ base, n: 1 });
     });
 
-    // Prioridad 4: Vinos (Fotos 01) - SOLO AL FINAL DE TODO
-    wineItems.forEach(item => {
+    // 4. Fotos 01 de VINOS (Solo al final de todo)
+    otherWineItems.forEach(item => {
         const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
         preloadQueue.push({ base, n: 1 });
     });
@@ -214,6 +223,7 @@ async function processPreloadQueue() {
             img.src = url;
         });
 
+        // Freno secuencial
         if (!success && task.n < 4) {
             preloadQueue = preloadQueue.filter(t => t.base !== task.base);
         }
