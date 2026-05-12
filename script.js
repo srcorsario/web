@@ -1,11 +1,10 @@
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9rPlxpax2lE0rN97c6Hoy_OxUwREqRb48juEBr9C91ZFY2UvaKgC8JdiRcwDrtBErXFVmFRh0Zr5e/pub?gid=0&single=true&output=csv';
-const APP_VERSION = 'v2.5'; 
+const APP_VERSION = 'v2.6'; 
 
 let allData = [];
 let currentLang = 'ES', currentCat = '12';
 let currentGalleryPath = '', currentPhotoIndex = 1, maxPhotosFound = 1;
 
-// "Memoria" para evitar descargas repetitivas
 let verifiedImages = {}; 
 let preloadQueue = [];
 let isPreloading = false;
@@ -175,28 +174,18 @@ async function managePreload() {
 
     const sortedData = [...allData].sort((a, b) => parseInt(a.id) - parseInt(b.id));
 
-    // Prioridad 1: Imágenes de la categoría actual
+    // Solo añadimos la foto 01 de cada plato relevante a la cola inicial
+    // Las fotos 02, 03, 04 se intentarán secuencialmente durante el procesamiento
     const currentItems = sortedData.filter(i => isItemInCategory(i.id, currentCat) && i.archivo && i.activa === 'SI');
     currentItems.forEach(item => {
         const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
-        for (let n = 1; n <= 4; n++) {
-            const url = `${base}0${n}.webp`;
-            if (verifiedImages[url] === undefined) {
-                preloadQueue.push({ url, base, n });
-            }
-        }
+        preloadQueue.push({ base, n: 1 });
     });
 
-    // Prioridad 2: Resto de comida
     const otherFoodItems = sortedData.filter(i => !isItemInCategory(i.id, currentCat) && parseInt(i.id) < 13000 && i.archivo && i.activa === 'SI');
     otherFoodItems.forEach(item => {
         const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
-        for (let n = 1; n <= 4; n++) {
-            const url = `${base}0${n}.webp`;
-            if (verifiedImages[url] === undefined) {
-                preloadQueue.push({ url, base, n });
-            }
-        }
+        preloadQueue.push({ base, n: 1 });
     });
 
     processPreloadQueue(mySession);
@@ -210,23 +199,30 @@ async function processPreloadQueue(session) {
         if (session !== currentPreloadSession) { isPreloading = false; return; }
         
         const task = preloadQueue.shift();
-        
-        // Si ya se verificó mientras estaba en cola, saltar
-        if (verifiedImages[task.url] !== undefined) continue;
+        const url = `${task.base}0${task.n}.webp`;
+
+        // Si ya sabemos el resultado de esta URL, decidimos si seguir con la siguiente o no
+        if (verifiedImages[url] !== undefined) {
+            if (verifiedImages[url] === true && task.n < 4) {
+                preloadQueue.unshift({ base: task.base, n: task.n + 1 });
+            }
+            continue;
+        }
 
         const success = await new Promise(resolve => {
             const img = new Image();
             img.onload = () => resolve(true);
             img.onerror = () => resolve(false);
-            img.src = task.url;
+            img.src = url;
         });
 
-        verifiedImages[task.url] = success;
+        verifiedImages[url] = success;
 
-        // Si una imagen (ej. la 02) no existe, cancelamos las siguientes (03, 04) de ese mismo plato
-        if (!success) {
-            preloadQueue = preloadQueue.filter(t => t.base !== task.base || t.n <= task.n);
+        // SECUENCIALIDAD ESTRICTA: Si esta existe y es menor a 4, intentamos la siguiente inmediatamente
+        if (success && task.n < 4) {
+            preloadQueue.unshift({ base: task.base, n: task.n + 1 });
         }
+        // Si NO existe (success = false), el bucle simplemente pasa al siguiente plato de la cola
     }
     isPreloading = false;
 }
@@ -240,6 +236,7 @@ async function openGallery(base) {
     updateModal();
     document.getElementById('photo-modal').style.display = 'flex';
 
+    // Búsqueda secuencial estricta para la galería abierta
     for (let i = 2; i <= 4; i++) {
         const url = `${base}0${i}.webp`;
         let exists = verifiedImages[url];
@@ -258,7 +255,8 @@ async function openGallery(base) {
             maxPhotosFound = i; 
             updateModal(); 
         } else {
-            break;
+            // Si la 02 falla, no se comprueba la 03 ni la 04
+            break; 
         }
     }
     processPreloadQueue(currentPreloadSession);
