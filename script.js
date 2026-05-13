@@ -1,5 +1,5 @@
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9rPlxpax2lE0rN97c6Hoy_OxUwREqRb48juEBr9C91ZFY2UvaKgC8JdiRcwDrtBErXFVmFRh0Zr5e/pub?gid=0&single=true&output=csv';
-const APP_VERSION = 'v3.0'; 
+const APP_VERSION = 'v3.0.1'; 
 
 let allData = [];
 let currentLang = 'ES', currentCat = '12';
@@ -174,7 +174,6 @@ function managePreload() {
 
     const sortedData = [...allData].sort((a, b) => parseInt(a.id) - parseInt(b.id));
 
-    // Función auxiliar para añadir una categoría completa por niveles (01 primero, luego 02...)
     const addCategoryByLevels = (items) => {
         const bases = items.map(item => `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`);
         for (let level = 1; level <= 4; level++) {
@@ -184,13 +183,17 @@ function managePreload() {
         }
     };
 
-    // 1. Prioridad: Categoría actual por niveles (Todos los 01, luego todos los 02...)
+    // 1. Prioridad: Categoría actual por niveles
     const currentItems = sortedData.filter(i => isItemInCategory(i.id, currentCat) && i.archivo && i.activa === 'SI');
     addCategoryByLevels(currentItems);
 
-    // 2. Resto: Comida restante por niveles (Todos los 01, luego todos los 02...)
+    // 2. Siguiente: Todo el resto de categorías EXCEPTO Vinos (id < 130)
     const otherFoodItems = sortedData.filter(i => !isItemInCategory(i.id, currentCat) && parseInt(i.id) < 13000 && i.archivo && i.activa === 'SI');
     addCategoryByLevels(otherFoodItems);
+
+    // 3. FINALMENTE: Todos los Vinos que no hayan sido cargados ya (id >= 13000)
+    const wineItems = sortedData.filter(i => !isItemInCategory(i.id, currentCat) && parseInt(i.id) >= 13000 && i.archivo && i.activa === 'SI');
+    addCategoryByLevels(wineItems);
 
     processPreloadQueue(mySession);
 }
@@ -205,7 +208,6 @@ async function processPreloadQueue(session) {
         const task = preloadQueue.shift();
         const url = `${task.base}0${task.n}.webp`;
 
-        // REGLA DE SALTO: Si es una foto secundaria (02, 03, 04) y la anterior (n-1) falló, no la descargamos
         if (task.n > 1) {
             const prevUrl = `${task.base}0${task.n - 1}.webp`;
             if (verifiedImages[prevUrl] === false) {
