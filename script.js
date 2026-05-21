@@ -286,4 +286,16 @@ function filterCategory(id) {
     managePreload(); 
 }
 
+// Inicializar la carga de datos de la web
 init();
+
+// Leer el hash de la URL para abrir automáticamente la categoría asignada al QR
+window.addEventListener('hashchange', checkUrlHash);
+window.addEventListener('DOMContentLoaded', checkUrlHash);
+
+function checkUrlHash() {
+    const hash = window.location.hash.replace('#', '');
+    if (hash && categoriesList.some(c => c.id === hash)) {
+        filterCategory(hash);
+    }
+}
