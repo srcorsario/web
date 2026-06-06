@@ -118,7 +118,7 @@ const categoriesList = [
     { 
         id: '134', 
         ES: 'Cavas & Champagne', EN: 'Cava & Champagne', DE: 'Cava & Champagne', FR: 'Cava & Champagne', IT: 'Cava & Champagne',
-        RU: 'Кава и Şампанское', NL: 'Cava & Champagne', PL: 'Cava i Szampan', SV: 'Cava & Champagne', NO: 'Cava og champagne',
+        RU: 'Кава и Шампанское', NL: 'Cava & Champagne', PL: 'Cava i Szampan', SV: 'Cava & Champagne', NO: 'Cava og champagne',
         DA: 'Cava & Champagne', FI: 'Cava & Samppanja', PT: 'Cavas e Champagne', RO: 'Cava & Șampanie', HU: 'Cava és pezsgők',
         CS: 'Cava a Šampaňské', EL: 'Cava & Σαμπάνια', TR: 'Kava & Şampanya', AR: 'كافا وشامبانيا', ZH: '卡瓦与香槟', JA: 'カヴァ＆シャンパン'
     }
@@ -187,6 +187,7 @@ const wineSubCats = [
 
 async function init() { 
     try { 
+        injectSombraStyles(); // Inyectamos dinámicamente las reglas CSS para la Opción 1
         populateLanguageSelect();
 
         const response = await fetch(CSV_URL); 
@@ -203,6 +204,42 @@ async function init() {
             managePreload(); 
         } 
     } catch (e) { console.error("Error en la inicialización:", e); }
+}
+
+function injectSombraStyles() {
+    if (document.getElementById('sombra-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'sombra-styles';
+    style.textContent = `
+        .nav-container-sombra {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+        }
+        #category-selector {
+            display: flex;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            white-space: nowrap;
+            padding-right: 40px !important; /* Espacio para que el degradado no tape el último botón */
+        }
+        #category-selector::-webkit-scrollbar {
+            display: none;
+        }
+        .nav-container-sombra::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 50px;
+            height: 100%;
+            background: linear-gradient(to right, rgba(255,255,255,0), rgba(255, 255, 255, 0.95));
+            pointer-events: none;
+            z-index: 5;
+        }
+    `;
+    document.head.appendChild(style);
 }
 
 function populateLanguageSelect() {
@@ -224,11 +261,7 @@ function populateLanguageSelect() {
 function updateLanguageUI() {
     document.querySelectorAll('#language-selector button').forEach(b => {
         b.classList.remove('active');
-        
-        // Extraemos las siglas del ID del botón (ej: 'btn-ES' -> 'ES')
         const code = b.id.replace('btn-', '');
-        
-        // Pintamos el nombre completo asignado en IDIOMAS (ej: "🇬🇧 English")
         if (IDIOMAS[code]) {
             b.textContent = IDIOMAS[code];
         }
@@ -296,6 +329,16 @@ function isItemInCategory(itemId, catId) {
 
 function renderCategories() { 
     const nav = document.getElementById('category-selector'); 
+    if (!nav) return;
+
+    // Encapsulamos automáticamente el selector en un div contenedor para aplicar el efecto sombra
+    if (nav.parentNode && !nav.parentNode.classList.contains('nav-container-sombra')) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'nav-container-sombra';
+        nav.parentNode.insertBefore(wrapper, nav);
+        wrapper.appendChild(nav);
+    }
+
     nav.innerHTML = categoriesList.map(c => {
         const catName = c[currentLang] || c['EN'] || c['ES'];
         const finalLabel = currentLang === 'ES' ? catName : `${catName} - ${c['ES']}`;
