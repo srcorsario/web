@@ -55,7 +55,7 @@ const categoriesList = [
     { 
         id: '5', 
         ES: 'Principales', EN: 'Mains', DE: 'Hauptspeisen', FR: 'Plats', IT: 'Piatti',
-        RU: 'Основные блюда', NL: 'Hoofdgerechten', PL: 'Dania główne', SV: 'Huvudrätter', NO: 'Hovedretter',
+        RU: 'Основные блюda', NL: 'Hoofdgerechten', PL: 'Dania główne', SV: 'Huvudrätter', NO: 'Hovedretter',
         DA: 'Hovedretter', FI: 'Pääruoat', PT: 'Pratos principais', RO: 'Feluri principale', HU: 'Főételek',
         CS: 'Hlavní jídla', EL: 'Κυρίως Πιάτα', TR: 'Ana Yemekler', AR: 'أطباق رئيسية', ZH: '主菜', JA: 'メインディッシュ'
     }, 
@@ -145,7 +145,7 @@ const subCatsLang = {
     },
     galicia: {
         ES: 'Galicia', EN: 'Galicia', DE: 'Galicien', FR: 'Galice', IT: 'Galizia',
-        RU: 'Галисия', NL: 'Galicië', PL: 'Galicja', SV: 'Galicien', NO: 'Galicia',
+        RU: 'Галисия', NL: 'Galicië', PL: 'Galcja', SV: 'Galicien', NO: 'Galicia',
         DA: 'Galicien', FI: 'Galicia', PT: 'Galiza', RO: 'Galicia', HU: 'Galícia',
         CS: 'Galicie', EL: 'Γαλικία', TR: 'Galiçya', AR: 'غاليسيا', ZH: '加利西亚', JA: 'ガリシア'
     },
@@ -187,7 +187,7 @@ const wineSubCats = [
 
 async function init() { 
     try { 
-        injectSombraStyles(); // Inyectamos dinámicamente las reglas CSS para la Opción 1
+        injectVisualIndicatorStyles(); // Inyecta la animación de la manita interactiva
         populateLanguageSelect();
 
         const response = await fetch(CSV_URL); 
@@ -202,19 +202,20 @@ async function init() {
             renderMenu(); 
             updateLanguageUI();
             managePreload(); 
+            setupScrollListener(); // Listener para borrar la manita cuando el cliente use el menú
         } 
     } catch (e) { console.error("Error en la inicialización:", e); }
 }
 
-function injectSombraStyles() {
-    if (document.getElementById('sombra-styles')) return;
+function injectVisualIndicatorStyles() {
+    if (document.getElementById('indicator-styles')) return;
     const style = document.createElement('style');
-    style.id = 'sombra-styles';
+    style.id = 'indicator-styles';
     style.textContent = `
-        .nav-container-sombra {
+        .nav-container-interactive {
             position: relative;
             width: 100%;
-            overflow: hidden;
+            margin-bottom: 5px;
         }
         #category-selector {
             display: flex;
@@ -222,17 +223,45 @@ function injectSombraStyles() {
             scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch;
             white-space: nowrap;
-            padding-right: 40px !important; /* Espacio para que el degradado no tape el último botón */
+            padding-right: 50px !important;
         }
         #category-selector::-webkit-scrollbar {
             display: none;
         }
-        .nav-container-sombra::after {
+        /* La manita indicadora */
+        .scroll-hint-hand {
+            position: absolute;
+            right: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 24px;
+            pointer-events: none;
+            z-index: 100;
+            opacity: 0.85;
+            background: rgba(255,255,255,0.9);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+            animation: swipeHand 1.6s ease-in-out infinite;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+        @keyframes swipeHand {
+            0% { transform: translateY(-50%) translateX(10px); opacity: 0; }
+            30% { opacity: 0.9; }
+            70% { transform: translateY(-50%) translateX(-35px); opacity: 0.9; }
+            100% { transform: translateY(-50%) translateX(-45px); opacity: 0; }
+        }
+        /* Sombra derecha clásica para complementar */
+        .nav-container-interactive::after {
             content: '';
             position: absolute;
             top: 0;
             right: 0;
-            width: 50px;
+            width: 45px;
             height: 100%;
             background: linear-gradient(to right, rgba(255,255,255,0), rgba(255, 255, 255, 0.95));
             pointer-events: none;
@@ -240,6 +269,26 @@ function injectSombraStyles() {
         }
     `;
     document.head.appendChild(style);
+}
+
+function setupScrollListener() {
+    const selector = document.getElementById('category-selector');
+    if (!selector) return;
+
+    const hideHint = () => {
+        const hint = document.querySelector('.scroll-hint-hand');
+        if (hint) {
+            hint.style.opacity = '0';
+            hint.style.transform = 'translateY(-50%) scale(0.5)';
+            setTimeout(() => hint.remove(), 400); // La elimina del mapa para que no estorbe jamás
+        }
+        // Quitamos los listeners una vez activado para optimizar memoria
+        selector.removeEventListener('scroll', hideHint);
+        selector.removeEventListener('touchstart', hideHint);
+    };
+
+    selector.addEventListener('scroll', hideHint);
+    selector.addEventListener('touchstart', hideHint);
 }
 
 function populateLanguageSelect() {
@@ -331,12 +380,18 @@ function renderCategories() {
     const nav = document.getElementById('category-selector'); 
     if (!nav) return;
 
-    // Encapsulamos automáticamente el selector en un div contenedor para aplicar el efecto sombra
-    if (nav.parentNode && !nav.parentNode.classList.contains('nav-container-sombra')) {
+    // Encapsulamos automáticamente el selector e inyectamos el div de la "manita flotante"
+    if (nav.parentNode && !nav.parentNode.classList.contains('nav-container-interactive')) {
         const wrapper = document.createElement('div');
-        wrapper.className = 'nav-container-sombra';
+        wrapper.className = 'nav-container-interactive';
         nav.parentNode.insertBefore(wrapper, nav);
         wrapper.appendChild(nav);
+        
+        // Creamos la manita interactiva animada
+        const handHint = document.createElement('div');
+        handHint.className = 'scroll-hint-hand';
+        handHint.innerHTML = '👉'; 
+        wrapper.appendChild(handHint);
     }
 
     nav.innerHTML = categoriesList.map(c => {
