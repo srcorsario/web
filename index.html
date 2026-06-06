@@ -1,40 +1,39 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RG Menu</title>
-    <link rel="icon" type="image/png" href="imagenes/icon.png">
+<head> 
+    <meta charset="UTF-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>RG Menu</title> 
+    <link rel="icon" type="image/png" href="imagenes/icon.png"> 
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <header>
+<body> 
+    <header> 
         <div id="language-selector">
-            <button id="btn-ES" onclick="changeLanguage('ES')" class="active"><span>🇪🇸</span> Español</button>
-            <button id="btn-EN" onclick="changeLanguage('EN')"><span>🇬🇧</span> English</button>
-            <button id="btn-DE" onclick="changeLanguage('DE')"><span>🇩🇪</span> Deutsch</button>
-            <button id="btn-FR" onclick="changeLanguage('FR')"><span>🇫🇷</span> Français</button>
-            <button id="btn-IT" onclick="changeLanguage('IT')"><span>🇮🇹</span> Italiano</button>
+            <button id="btn-ES" onclick="changeLanguage('ES')" class="active">Español</button>
+            <button id="btn-EN" onclick="changeLanguage('EN')">English</button>
+            <button id="btn-DE" onclick="changeLanguage('DE')">Deutsch</button>
+            <button id="btn-FR" onclick="changeLanguage('FR')">Français</button>
+            <button id="btn-IT" onclick="changeLanguage('IT')">Italiano</button>
+            <select id="more-langs" onchange="changeLanguage(this.value)">
+                <option value="">🌐 Más...</option>
+            </select>
         </div>
-
-        <div class="category-wrapper">
-            <nav id="category-selector"></nav>
-        </div>
+        <div class="category-wrapper"> 
+            <nav id="category-selector"></nav> 
+        </div> 
     </header>
 
-    <main id="menu-container">
-        <h2 id="current-category-name"></h2>
-        <div id="items-list"></div>
+    <main id="menu-container"> 
+        <h2 id="current-category-name"></h2> 
+        <div id="items-list"></div> 
     </main>
 
-    <div id="photo-modal" onclick="closeModal()">
-        <span class="close-modal" onclick="closeModal()">&times;</span>
-        
-        <button id="prev-btn" class="nav-btn" onclick="changePhoto(-1); event.stopPropagation();">❮</button>
-        
-        <img id="modal-img" src="" alt="Vista previa" onclick="event.stopPropagation();">
-        
-        <button id="next-btn" class="nav-btn" onclick="changePhoto(1); event.stopPropagation();">❯</button>
+    <div id="photo-modal" onclick="closeModal()"> 
+        <span class="close-modal" onclick="closeModal()">&times;</span>  
+        <button id="prev-btn" class="nav-btn" onclick="changePhoto(-1); event.stopPropagation();">❮</button>  
+        <img id="modal-img" src="" alt="Vista previa" onclick="event.stopPropagation();">  
+        <button id="next-btn" class="nav-btn" onclick="changePhoto(1); event.stopPropagation();">❯</button> 
     </div>
 
     <script src="script.js"></script>
