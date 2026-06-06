@@ -99,7 +99,7 @@ const categoriesList = [
         ES: 'Vinos Blancos', EN: 'White Wines', DE: 'Weissweine', FR: 'Vins Blancs', IT: 'Vini Bianchi',
         RU: 'Белые вина', NL: 'Witte wijnen', PL: 'Białe wina', SV: 'Vita viner', NO: 'Hvite viner',
         DA: 'Hvidvine', FI: 'Valkoviinit', PT: 'Vinhos brancos', RO: 'Vinuri albe', HU: 'Fehérborok',
-        CS: 'Bílá vína', EL: 'Λευκά Κρασιά', TR: 'Beyaz Şaraplar', AR: 'نبيذ أبيض', ZH: '白葡萄酒', JA: '白ワイン'
+        CS: 'Bílá vína', EL: 'Λευκά Κraσιά', TR: 'Beyaz Şaraplar', AR: 'نبيذ أبيض', ZH: '白葡萄酒', JA: '白ワイン'
     }, 
     { 
         id: '132', 
@@ -124,7 +124,6 @@ const categoriesList = [
     }
 ];
 
-// Diccionarios compartidos para las subcategorías repetitivas
 const subCatsLang = {
     mallorca: {
         ES: 'Vinos de Mallorca', EN: 'Majorcan Wines', DE: 'Weine aus Mallorca', FR: 'Vins de Majorque', IT: 'Vini di Maiorca',
@@ -142,7 +141,7 @@ const subCatsLang = {
         ES: 'Otras D.O.', EN: 'Other D.O.', DE: 'Andere D.O.', FR: 'Autres D.O.', IT: 'Altre D.O.',
         RU: 'Другие D.O.', NL: 'Overige D.O.', PL: 'Inne D.O.', SV: 'Andra D.O.', NO: 'Andre D.O.',
         DA: 'Andre D.O.', FI: 'Muut D.O.', PT: 'Outras D.O.', RO: 'Alte D.O.', HU: 'Egyéb D.O.',
-        CS: 'Ostatní D.O.', EL: 'Άλλες D.O.', TR: 'Diğer D.O.', AR: 'تسميات منشأ أخرى', ZH: ' Clean其他D.O.产区', JA: 'その他のD.O.'
+        CS: 'Ostatní D.O.', EL: 'Άλλες D.O.', TR: 'Diğer D.O.', AR: 'تسميات منшأ أخرى', ZH: '其他D.O.产区', JA: 'その他のD.O.'
     },
     galicia: {
         ES: 'Galicia', EN: 'Galicia', DE: 'Galicien', FR: 'Galice', IT: 'Galizia',
@@ -154,7 +153,7 @@ const subCatsLang = {
         ES: 'Rueda', EN: 'Rueda', DE: 'Rueda', FR: 'Rueda', IT: 'Rueda',
         RU: 'Руэда', NL: 'Rueda', PL: 'Rueda', SV: 'Rueda', NO: 'Rueda',
         DA: 'Rueda', FI: 'Rueda', PT: 'Rueda', RO: 'Rueda', HU: 'Rueda',
-        CS: 'Rueda', EL: 'Ρουέδα', TR: 'Rueda', AR: 'رويدا', ZH: '卢埃达', JA: 'ルエ达'
+        CS: 'Rueda', EL: 'Ρουέδα', TR: 'Rueda', AR: 'رويدا', ZH: '卢埃达', JA: 'ルエダ'
     },
     rioja: {
         ES: 'Rioja', EN: 'Rioja', DE: 'Rioja', FR: 'Rioja', IT: 'Rioja',
@@ -287,7 +286,6 @@ function isItemInCategory(itemId, catId) {
 
 function renderCategories() { 
     const nav = document.getElementById('category-selector'); 
-    // Fallback inteligente: si no existe la traducción de la categoría, usa EN, y si tampoco, usa ES
     nav.innerHTML = categoriesList.map(c => {
         const catName = c[currentLang] || c['EN'] || c['ES'];
         return `<button onclick="filterCategory('${c.id}')" class="cat-btn ${currentCat === c.id ? 'active' : ''}">${catName}</button>`;
@@ -298,7 +296,6 @@ function renderMenu() {
     const grid = document.getElementById('items-list'), title = document.getElementById('current-category-name'); 
     const catObj = categoriesList.find(c => c.id === currentCat); 
     
-    // Fallback inteligente para el título superior
     const translatedTitle = catObj ? (catObj[currentLang] || catObj['EN'] || catObj['ES']) : "";
     title.innerHTML = `${translatedTitle} <span style="font-size: 0.4em; opacity: 0.5; font-weight: normal; margin-left: 10px;">${APP_VERSION}</span>`; 
     grid.innerHTML = '';
@@ -313,7 +310,6 @@ function renderMenu() {
         if (currentCat.startsWith('13')) { 
             const foundSub = wineSubCats.find(s => idNum >= s.start && idNum <= s.end); 
             if (foundSub) {
-                // Fallback inteligente para subcategorías de vino
                 const subCatName = foundSub[currentLang] || foundSub['EN'] || foundSub['ES'];
                 if (subCatName !== currentActiveSubCatName) { 
                     grid.innerHTML += `<h3 class="sub-category-title">${subCatName}</h3>`; 
@@ -477,7 +473,7 @@ function closeModal() { document.getElementById('photo-modal').style.display = '
 function changeLanguage(l) { 
     if (!l) return;
     currentLang = l; 
-    updateLanguageUI();
+    updateLanguageUI(); // <--- Corrección añadida para actualizar visualmente la interfaz de idiomas
     renderCategories(); 
     renderMenu(); 
     managePreload();
