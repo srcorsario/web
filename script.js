@@ -99,7 +99,7 @@ const categoriesList = [
         ES: 'Vinos Blancos', EN: 'White Wines', DE: 'Weissweine', FR: 'Vins Blancs', IT: 'Vini Bianchi',
         RU: 'Белые вина', NL: 'Witte wijnen', PL: 'Białe wina', SV: 'Vita viner', NO: 'Hvite viner',
         DA: 'Hvidvine', FI: 'Valkoviinit', PT: 'Vinhos brancos', RO: 'Vinuri albe', HU: 'Fehérborok',
-        CS: 'Bílá vína', EL: 'Λευκά Κraσιά', TR: 'Beyaz Şaraplar', AR: 'نبيذ أبيض', ZH: '白葡萄酒', JA: '白ワイン'
+        CS: 'Bílá vína', EL: 'Λευκά Κρασιά', TR: 'Beyaz Şaraplar', AR: 'نبيذ أبيض', ZH: '白葡萄酒', JA: '白ワイン'
     }, 
     { 
         id: '132', 
@@ -118,7 +118,7 @@ const categoriesList = [
     { 
         id: '134', 
         ES: 'Cavas & Champagne', EN: 'Cava & Champagne', DE: 'Cava & Champagne', FR: 'Cava & Champagne', IT: 'Cava & Champagne',
-        RU: 'Кава и Шампанское', NL: 'Cava & Champagne', PL: 'Cava i Szampan', SV: 'Cava & Champagne', NO: 'Cava og champagne',
+        RU: 'Кава и Şампанское', NL: 'Cava & Champagne', PL: 'Cava i Szampan', SV: 'Cava & Champagne', NO: 'Cava og champagne',
         DA: 'Cava & Champagne', FI: 'Cava & Samppanja', PT: 'Cavas e Champagne', RO: 'Cava & Șampanie', HU: 'Cava és pezsgők',
         CS: 'Cava a Šampaňské', EL: 'Cava & Σαμπάνια', TR: 'Kava & Şampanya', AR: 'كافا وشامبانيا', ZH: '卡瓦与香槟', JA: 'カヴァ＆シャンパン'
     }
@@ -222,17 +222,15 @@ function populateLanguageSelect() {
 }
 
 function updateLanguageUI() {
-    // Buscamos todos los botones dentro del selector de idiomas
     document.querySelectorAll('#language-selector button').forEach(b => {
         b.classList.remove('active');
         
-        // Extraemos el código de idioma del ID del botón (ej: 'btn-ES' -> 'ES')
+        // Extraemos las siglas del ID del botón (ej: 'btn-ES' -> 'ES')
         const code = b.id.replace('btn-', '');
         
-        // Si el idioma existe en nuestro diccionario, le inyectamos el texto con la bandera limpia (solo las 3 primeras letras del idioma para que quepa en el diseño)
+        // Pintamos el nombre completo asignado en IDIOMAS (ej: "🇬🇧 English")
         if (IDIOMAS[code]) {
-            const labelText = IDIOMAS[code].split(' ')[0] + ' ' + code; // Ej: "🇪🇸 ES"
-            b.textContent = labelText;
+            b.textContent = IDIOMAS[code];
         }
     });
     
