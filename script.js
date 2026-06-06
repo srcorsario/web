@@ -1,5 +1,5 @@
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9rPlxpax2lE0rN97c6Hoy_OxUwREqRb48juEBr9C91ZFY2UvaKgC8JdiRcwDrtBErXFVmFRh0Zr5e/pub?gid=0&single=true&output=csv';
-const APP_VERSION = 'v3.0.1'; 
+const APP_VERSION = 'v3.0.2'; 
 
 const IDIOMAS = {
     ES: "Español", EN: "English", DE: "Deutsch", FR: "Français", IT: "Italiano",
@@ -52,7 +52,6 @@ const wineSubCats = [
 
 async function init() { 
     try { 
-        // 1. Forzar el llenado del select nada más arrancar
         populateLanguageSelect();
 
         const response = await fetch(CSV_URL); 
@@ -75,10 +74,8 @@ function populateLanguageSelect() {
     const select = document.getElementById('more-langs');
     if (!select) return;
     
-    // Limpiar y añadir la opción por defecto
     select.innerHTML = '<option value="">🌐 Más...</option>';
     
-    // Insertar los 16 idiomas secundarios
     Object.entries(IDIOMAS).forEach(([code, name]) => {
         if (!['ES','EN','DE','FR','IT'].includes(code)) {
             const opt = document.createElement('option');
@@ -90,18 +87,15 @@ function populateLanguageSelect() {
 }
 
 function updateLanguageUI() {
-    // Desmarcar todos los botones principales
     document.querySelectorAll('#language-selector button').forEach(b => b.classList.remove('active'));
     
     const btn = document.getElementById(`btn-${currentLang}`);
     const select = document.getElementById('more-langs');
     
     if (btn) {
-        // Si es uno de los 5 principales, se activa su botón y se resetea el select
         btn.classList.add('active');
         if (select) select.value = '';
     } else {
-        // Si es uno de los 15 secundarios, se asigna el valor al select
         if (select) select.value = currentLang;
     }
 }
@@ -157,13 +151,20 @@ function isItemInCategory(itemId, catId) {
 
 function renderCategories() { 
     const nav = document.getElementById('category-selector'); 
-    nav.innerHTML = categoriesList.map(c => `<button onclick="filterCategory('${c.id}')" class="cat-btn ${currentCat === c.id ? 'active' : ''}">${c[currentLang] || c['ES']}</button>`).join('');
+    // Fallback inteligente: si no existe la traducción de la categoría, usa EN, y si tampoco, usa ES
+    nav.innerHTML = categoriesList.map(c => {
+        const catName = c[currentLang] || c['EN'] || c['ES'];
+        return `<button onclick="filterCategory('${c.id}')" class="cat-btn ${currentCat === c.id ? 'active' : ''}">${catName}</button>`;
+    }).join('');
 }
 
 function renderMenu() { 
     const grid = document.getElementById('items-list'), title = document.getElementById('current-category-name'); 
     const catObj = categoriesList.find(c => c.id === currentCat); 
-    title.innerHTML = `${catObj ? (catObj[currentLang] || catObj['ES']) : ""} <span style="font-size: 0.4em; opacity: 0.5; font-weight: normal; margin-left: 10px;">${APP_VERSION}</span>`; 
+    
+    // Fallback inteligente para el título superior
+    const translatedTitle = catObj ? (catObj[currentLang] || catObj['EN'] || catObj['ES']) : "";
+    title.innerHTML = `${translatedTitle} <span style="font-size: 0.4em; opacity: 0.5; font-weight: normal; margin-left: 10px;">${APP_VERSION}</span>`; 
     grid.innerHTML = '';
 
     const filtered = allData.filter(item => { 
@@ -175,9 +176,13 @@ function renderMenu() {
         const idNum = parseInt(item.id); 
         if (currentCat.startsWith('13')) { 
             const foundSub = wineSubCats.find(s => idNum >= s.start && idNum <= s.end); 
-            if (foundSub && (foundSub[currentLang] || foundSub['ES']) !== currentActiveSubCatName) { 
-                grid.innerHTML += `<h3 class="sub-category-title">${foundSub[currentLang] || foundSub['ES']}</h3>`; 
-                currentActiveSubCatName = foundSub[currentLang] || foundSub['ES']; 
+            if (foundSub) {
+                // Fallback inteligente para subcategorías de vino
+                const subCatName = foundSub[currentLang] || foundSub['EN'] || foundSub['ES'];
+                if (subCatName !== currentActiveSubCatName) { 
+                    grid.innerHTML += `<h3 class="sub-category-title">${subCatName}</h3>`; 
+                    currentActiveSubCatName = subCatName; 
+                }
             } 
         } 
         grid.innerHTML += generateItemHtml(item); 
@@ -187,7 +192,7 @@ function renderMenu() {
         const guarnis = allData.filter(item => item.id.toString().startsWith('6') && item.id.toString().length === 4 && item.activa === 'SI'); 
         if (guarnis.length > 0) { 
             const guarniTitles = { ES: 'Guarniciones', EN: 'Side Dishes', DE: 'Beilagen', FR: 'Garnitures', IT: 'Contorni' }; 
-            const titleText = guarniTitles[currentLang] || guarniTitles['ES']; 
+            const titleText = guarniTitles[currentLang] || guarniTitles['EN'] || guarniTitles['ES']; 
             grid.innerHTML += `<h3 class="sub-category-title">${titleText}</h3>`; 
             guarnis.forEach(g => grid.innerHTML += generateItemHtml(g, true)); 
         } 
@@ -331,7 +336,7 @@ function updateModal() {
 }
 
 function changePhoto(n) { currentPhotoIndex += n; updateModal(); }
-function closeModal() { document.getElementById('photo-modal').style.none'; document.getElementById('photo-modal').style.display = 'none'; }
+function closeModal() { document.getElementById('photo-modal').style.display = 'none'; }
 
 function changeLanguage(l) { 
     if (!l) return;
@@ -350,7 +355,6 @@ function filterCategory(id) {
     managePreload(); 
 }
 
-// Inicialización controlada
 init();
 
 window.addEventListener('hashchange', checkUrlHash);
