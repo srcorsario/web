@@ -52,38 +52,58 @@ const wineSubCats = [
 
 async function init() { 
     try { 
+        // 1. Forzar el llenado del select nada más arrancar
+        populateLanguageSelect();
+
         const response = await fetch(CSV_URL); 
         const csvText = await response.text(); 
         allData = parseCSV(csvText); 
+        
         if (allData.length > 0) { 
-            populateLanguageSelect();
             const userLang = (navigator.language || navigator.userLanguage).split('-')[0].toUpperCase();
             currentLang = IDIOMAS[userLang] ? userLang : 'EN';
+            
             renderCategories(); 
             renderMenu(); 
             updateLanguageUI();
             managePreload(); 
         } 
-    } catch (e) { console.error("Error:", e); }
+    } catch (e) { console.error("Error en la inicialización:", e); }
 }
 
 function populateLanguageSelect() {
     const select = document.getElementById('more-langs');
+    if (!select) return;
+    
+    // Limpiar y añadir la opción por defecto
     select.innerHTML = '<option value="">🌐 Más...</option>';
+    
+    // Insertar los 16 idiomas secundarios
     Object.entries(IDIOMAS).forEach(([code, name]) => {
         if (!['ES','EN','DE','FR','IT'].includes(code)) {
-            select.innerHTML += `<option value="${code}">${name}</option>`;
+            const opt = document.createElement('option');
+            opt.value = code;
+            opt.textContent = name;
+            select.appendChild(opt);
         }
     });
 }
 
 function updateLanguageUI() {
+    // Desmarcar todos los botones principales
     document.querySelectorAll('#language-selector button').forEach(b => b.classList.remove('active'));
+    
     const btn = document.getElementById(`btn-${currentLang}`);
+    const select = document.getElementById('more-langs');
+    
     if (btn) {
+        // Si es uno de los 5 principales, se activa su botón y se resetea el select
         btn.classList.add('active');
+        if (select) select.value = '';
+    } else {
+        // Si es uno de los 15 secundarios, se asigna el valor al select
+        if (select) select.value = currentLang;
     }
-    document.getElementById('more-langs').value = ['ES','EN','DE','FR','IT'].includes(currentLang) ? '' : currentLang;
 }
 
 function parseCSV(text) { 
@@ -137,7 +157,6 @@ function isItemInCategory(itemId, catId) {
 
 function renderCategories() { 
     const nav = document.getElementById('category-selector'); 
-    // Fallback por si la categoría no tiene traducción directa en la lista estática (usa ES)
     nav.innerHTML = categoriesList.map(c => `<button onclick="filterCategory('${c.id}')" class="cat-btn ${currentCat === c.id ? 'active' : ''}">${c[currentLang] || c['ES']}</button>`).join('');
 }
 
@@ -182,7 +201,6 @@ function generateItemHtml(item, isGuarni = false) {
         return { name: parts[0] || '', uvas: parts[1] || '' }; 
     }; 
 
-    // Extrae el idioma seleccionado o hace un fallback al español si viene vacío
     const currentData = processName(item[`nombre_${currentLang.toLowerCase()}`] || item.nombre_es); 
     const secondaryData = processName(item.nombre_es); 
 
@@ -313,7 +331,7 @@ function updateModal() {
 }
 
 function changePhoto(n) { currentPhotoIndex += n; updateModal(); }
-function closeModal() { document.getElementById('photo-modal').style.display = 'none'; }
+function closeModal() { document.getElementById('photo-modal').style.none'; document.getElementById('photo-modal').style.display = 'none'; }
 
 function changeLanguage(l) { 
     if (!l) return;
@@ -332,6 +350,7 @@ function filterCategory(id) {
     managePreload(); 
 }
 
+// Inicialización controlada
 init();
 
 window.addEventListener('hashchange', checkUrlHash);
