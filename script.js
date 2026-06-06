@@ -43,7 +43,7 @@ const categoriesList = [
         ES: 'Arroces & Pastas', EN: 'Rice & Pasta', DE: 'Reis & Pasta', FR: 'Riz & Pâtes', IT: 'Riso e Pasta',
         RU: 'Рис и паста', NL: 'Rijst & Pasta', PL: 'Ryż i Makaron', SV: 'Ris & Pasta', NO: 'Ris og pasta',
         DA: 'Ris & Pasta', FI: 'Riisi & Pasta', PT: 'Arroz e Massa', RO: 'Orez și paste', HU: 'Rizs és tészták',
-        CS: 'Rýže a těstoviny', EL: 'Ρύζι & Ζυмарικά', TR: 'Pilav & Makarna', AR: 'أرز وباستا', ZH: '米饭与面食', JA: 'ライス＆パスタ'
+        CS: 'Rýže a těstoviny', EL: 'Ρύζι & Ζυμαρικά', TR: 'Pilav & Makarna', AR: 'أرز وباستا', ZH: '米饭与面食', JA: 'ライス＆パスタ'
     }, 
     { 
         id: '4', 
@@ -62,7 +62,7 @@ const categoriesList = [
     { 
         id: '7', 
         ES: 'Niños', EN: 'Kids', DE: 'Kinder', FR: 'Enfants', IT: 'Bambini',
-        RU: 'Детское menu', NL: 'Kinderen', PL: 'Dla dzieci', SV: 'Barn', NO: 'Barn',
+        RU: 'Детское меню', NL: 'Kinderen', PL: 'Dla dzieci', SV: 'Barn', NO: 'Barn',
         DA: 'Børn', FI: 'Lapset', PT: 'Crianças', RO: 'Copii', HU: 'Gyerekeknek',
         CS: 'Pro děti', EL: 'Παιδικά', TR: 'Çocuklar', AR: 'أطفال', ZH: '儿童餐', JA: 'キッズメニュー'
     }, 
@@ -99,7 +99,7 @@ const categoriesList = [
         ES: 'Vinos Blancos', EN: 'White Wines', DE: 'Weissweine', FR: 'Vins Blancs', IT: 'Vini Bianchi',
         RU: 'Белые вина', NL: 'Witte wijnen', PL: 'Białe wina', SV: 'Vita viner', NO: 'Hvite viner',
         DA: 'Hvidvine', FI: 'Valkoviinit', PT: 'Vinhos brancos', RO: 'Vinuri albe', HU: 'Fehérborok',
-        CS: 'Bílá vína', EL: 'Λευκά Κρασιά', TR: 'Beyaz Şaraplar', AR: 'نبيذ أبيض', ZH: '白葡萄酒', JA: '白ワイン'
+        CS: 'Bílá vína', EL: 'Λευκά Κraσιά', TR: 'Beyaz Şaraplar', AR: 'نبيذ أبيض', ZH: '白葡萄酒', JA: '白ワイン'
     }, 
     { 
         id: '132', 
@@ -135,7 +135,7 @@ const subCatsLang = {
         ES: 'Copas', EN: 'By the Glass', DE: 'Glasweise', FR: 'Au Verre', IT: 'Al Calice',
         RU: 'По бокалам', NL: 'Per glas', PL: 'Na kieliszki', SV: 'Glasvis', NO: 'Glassvis',
         DA: 'Pr. glas', FI: 'Laseittain', PT: 'A copo', RO: 'La pahar', HU: 'Pohárral',
-        CS: 'Rozlévaná vína', EL: 'Σε Ποτήri', TR: 'Kadehte', AR: 'بأقداح الكأس', ZH: '杯装酒', JA: 'グラスワイン'
+        CS: 'Rozlévaná vína', EL: 'Σε Ποτήρι', TR: 'Kadehte', AR: 'بأقداح الكأس', ZH: '杯装酒', JA: 'グラスワイン'
     },
     otras: {
         ES: 'Otras D.O.', EN: 'Other D.O.', DE: 'Andere D.O.', FR: 'Autres D.O.', IT: 'Altre D.O.',
@@ -215,14 +215,26 @@ function populateLanguageSelect() {
         if (!['ES','EN','DE','FR','IT'].includes(code)) {
             const opt = document.createElement('option');
             opt.value = code;
-            opt.textContent = name; // Aquí ya se incluye el emoji de la bandera de IDIOMAS
+            opt.textContent = name; 
             select.appendChild(opt);
         }
     });
 }
 
 function updateLanguageUI() {
-    document.querySelectorAll('#language-selector button').forEach(b => b.classList.remove('active'));
+    // Buscamos todos los botones dentro del selector de idiomas
+    document.querySelectorAll('#language-selector button').forEach(b => {
+        b.classList.remove('active');
+        
+        // Extraemos el código de idioma del ID del botón (ej: 'btn-ES' -> 'ES')
+        const code = b.id.replace('btn-', '');
+        
+        // Si el idioma existe en nuestro diccionario, le inyectamos el texto con la bandera limpia (solo las 3 primeras letras del idioma para que quepa en el diseño)
+        if (IDIOMAS[code]) {
+            const labelText = IDIOMAS[code].split(' ')[0] + ' ' + code; // Ej: "🇪🇸 ES"
+            b.textContent = labelText;
+        }
+    });
     
     const btn = document.getElementById(`btn-${currentLang}`);
     const select = document.getElementById('more-langs');
