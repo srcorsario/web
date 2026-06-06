@@ -22,7 +22,7 @@ const categoriesList = [
         ES: 'Sugerencias', EN: 'Suggestions', DE: 'Vorschläge', FR: 'Suggestions', IT: 'Suggerimenti',
         RU: 'Предложения', NL: 'Suggesties', PL: 'Sugestie', SV: 'Förslag', NO: 'Forslag',
         DA: 'Forslag', FI: 'Suositukset', PT: 'Sugestões', RO: 'Sugestii', HU: 'Ajánlatok',
-        CS: 'Doporučení', EL: 'Προτάσεις', TR: 'Öneriler', AR: 'اقتراحات', ZH: '推荐', JA: 'おすすめ'
+        CS: 'Doporučení', EL: 'Προτάσεις', TR: 'Öneriler', AR: 'اقتраحات', ZH: '推荐', JA: 'おすすめ'
     }, 
     { 
         id: '1', 
@@ -99,7 +99,7 @@ const categoriesList = [
         ES: 'Vinos Blancos', EN: 'White Wines', DE: 'Weissweine', FR: 'Vins Blancs', IT: 'Vini Bianchi',
         RU: 'Белые вина', NL: 'Witte wijnen', PL: 'Białe wina', SV: 'Vita viner', NO: 'Hvite viner',
         DA: 'Hvidvine', FI: 'Valkoviinit', PT: 'Vinhos brancos', RO: 'Vinuri albe', HU: 'Fehérborok',
-        CS: 'Bílá vína', EL: 'Λευκά Κraσιά', TR: 'Beyaz Şaraplar', AR: 'نبيذ أبيض', ZH: '白葡萄酒', JA: '白ワイン'
+        CS: 'Bílá vína', EL: 'Λευκά Κρασιά', TR: 'Beyaz Şaraplar', AR: 'نبيذ أبيض', ZH: '白葡萄酒', JA: '白ワイン'
     }, 
     { 
         id: '132', 
@@ -141,7 +141,7 @@ const subCatsLang = {
         ES: 'Otras D.O.', EN: 'Other D.O.', DE: 'Andere D.O.', FR: 'Autres D.O.', IT: 'Altre D.O.',
         RU: 'Другие D.O.', NL: 'Overige D.O.', PL: 'Inne D.O.', SV: 'Andra D.O.', NO: 'Andre D.O.',
         DA: 'Andre D.O.', FI: 'Muut D.O.', PT: 'Outras D.O.', RO: 'Alte D.O.', HU: 'Egyéb D.O.',
-        CS: 'Ostatní D.O.', EL: 'Άλλες D.O.', TR: 'Diğer D.O.', AR: 'تسميات منшأ أخرى', ZH: '其他D.O.产区', JA: 'その他のD.O.'
+        CS: 'Ostatní D.O.', EL: 'Άλλες D.O.', TR: 'Diğer D.O.', AR: 'تسميات منشأ أخرى', ZH: '其他D.O.产区', JA: 'その他のD.O.'
     },
     galicia: {
         ES: 'Galicia', EN: 'Galicia', DE: 'Galicien', FR: 'Galice', IT: 'Galizia',
@@ -288,7 +288,8 @@ function renderCategories() {
     const nav = document.getElementById('category-selector'); 
     nav.innerHTML = categoriesList.map(c => {
         const catName = c[currentLang] || c['EN'] || c['ES'];
-        return `<button onclick="filterCategory('${c.id}')" class="cat-btn ${currentCat === c.id ? 'active' : ''}">${catName}</button>`;
+        const finalLabel = currentLang === 'ES' ? catName : `${catName} - ${c['ES']}`;
+        return `<button onclick="filterCategory('${c.id}')" class="cat-btn ${currentCat === c.id ? 'active' : ''}">${finalLabel}</button>`;
     }).join('');
 }
 
@@ -296,7 +297,9 @@ function renderMenu() {
     const grid = document.getElementById('items-list'), title = document.getElementById('current-category-name'); 
     const catObj = categoriesList.find(c => c.id === currentCat); 
     
-    const translatedTitle = catObj ? (catObj[currentLang] || catObj['EN'] || catObj['ES']) : "";
+    const catName = catObj ? (catObj[currentLang] || catObj['EN'] || catObj['ES']) : "";
+    const translatedTitle = currentLang === 'ES' ? catName : `${catName} - ${catObj['ES']}`;
+    
     title.innerHTML = `${translatedTitle} <span style="font-size: 0.4em; opacity: 0.5; font-weight: normal; margin-left: 10px;">${APP_VERSION}</span>`; 
     grid.innerHTML = '';
 
@@ -311,9 +314,10 @@ function renderMenu() {
             const foundSub = wineSubCats.find(s => idNum >= s.start && idNum <= s.end); 
             if (foundSub) {
                 const subCatName = foundSub[currentLang] || foundSub['EN'] || foundSub['ES'];
-                if (subCatName !== currentActiveSubCatName) { 
-                    grid.innerHTML += `<h3 class="sub-category-title">${subCatName}</h3>`; 
-                    currentActiveSubCatName = subCatName; 
+                const finalSubName = currentLang === 'ES' ? subCatName : `${subCatName} - ${foundSub['ES']}`;
+                if (finalSubName !== currentActiveSubCatName) { 
+                    grid.innerHTML += `<h3 class="sub-category-title">${finalSubName}</h3>`; 
+                    currentActiveSubCatName = finalSubName; 
                 }
             } 
         } 
@@ -325,7 +329,8 @@ function renderMenu() {
         if (guarnis.length > 0) { 
             const guarniTitles = { ES: 'Guarniciones', EN: 'Side Dishes', DE: 'Beilagen', FR: 'Garnitures', IT: 'Contorni' }; 
             const titleText = guarniTitles[currentLang] || guarniTitles['EN'] || guarniTitles['ES']; 
-            grid.innerHTML += `<h3 class="sub-category-title">${titleText}</h3>`; 
+            const finalGuarniTitle = currentLang === 'ES' ? titleText : `${titleText} - ${guarniTitles['ES']}`;
+            grid.innerHTML += `<h3 class="sub-category-title">${finalGuarniTitle}</h3>`; 
             guarnis.forEach(g => grid.innerHTML += generateItemHtml(g, true)); 
         } 
     }
@@ -473,7 +478,7 @@ function closeModal() { document.getElementById('photo-modal').style.display = '
 function changeLanguage(l) { 
     if (!l) return;
     currentLang = l; 
-    updateLanguageUI(); // <--- Corrección añadida para actualizar visualmente la interfaz de idiomas
+    updateLanguageUI(); 
     renderCategories(); 
     renderMenu(); 
     managePreload();
