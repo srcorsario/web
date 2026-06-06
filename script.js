@@ -2,10 +2,10 @@ const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9rPlxpax2lE0r
 const APP_VERSION = 'v3.0.2'; 
 
 const IDIOMAS = {
-    ES: "Español", EN: "English", DE: "Deutsch", FR: "Français", IT: "Italiano",
-    RU: "Русский", NL: "Nederlands", PL: "Polski", SV: "Svenska", NO: "Norsk",
-    DA: "Dansk", FI: "Suomi", PT: "Português", RO: "Română", HU: "Magyar",
-    CS: "Čeština", EL: "Ελληνικά", TR: "Türkçe", AR: "العربية", ZH: "中文", JA: "日本語"
+    ES: "🇪🇸 Español", EN: "🇬🇧 English", DE: "🇩🇪 Deutsch", FR: "🇫🇷 Français", IT: "🇮🇹 Italiano",
+    RU: "🇷🇺 Русский", NL: "🇳🇱 Nederlands", PL: "🇵🇱 Polski", SV: "🇸🇪 Svenska", NO: "🇳🇴 Norsk",
+    DA: "🇩🇰 Dansk", FI: "🇫🇮 Suomi", PT: "🇵🇹 Português", RO: "🇷🇴 Română", HU: "🇭🇺 Magyar",
+    CS: "🇨🇿 Čeština", EL: "🇬🇷 Ελληνικά", TR: "🇹🇷 Türkçe", AR: "🇦🇪 العربية", ZH: "🇨🇳 中文", JA: "🇯🇵 日本語"
 };
 
 let allData = [];
@@ -22,7 +22,7 @@ const categoriesList = [
         ES: 'Sugerencias', EN: 'Suggestions', DE: 'Vorschläge', FR: 'Suggestions', IT: 'Suggerimenti',
         RU: 'Предложения', NL: 'Suggesties', PL: 'Sugestie', SV: 'Förslag', NO: 'Forslag',
         DA: 'Forslag', FI: 'Suositukset', PT: 'Sugestões', RO: 'Sugestii', HU: 'Ajánlatok',
-        CS: 'Doporučení', EL: 'Προτάσεις', TR: 'Öneriler', AR: 'اقتраحات', ZH: '推荐', JA: 'おすすめ'
+        CS: 'Doporučení', EL: 'Προτάσεις', TR: 'Öneriler', AR: 'اقتراحات', ZH: '推荐', JA: 'おすすめ'
     }, 
     { 
         id: '1', 
@@ -43,7 +43,7 @@ const categoriesList = [
         ES: 'Arroces & Pastas', EN: 'Rice & Pasta', DE: 'Reis & Pasta', FR: 'Riz & Pâtes', IT: 'Riso e Pasta',
         RU: 'Рис и паста', NL: 'Rijst & Pasta', PL: 'Ryż i Makaron', SV: 'Ris & Pasta', NO: 'Ris og pasta',
         DA: 'Ris & Pasta', FI: 'Riisi & Pasta', PT: 'Arroz e Massa', RO: 'Orez și paste', HU: 'Rizs és tészták',
-        CS: 'Rýže a těstoviny', EL: 'Ρύζι & Ζυμαρικά', TR: 'Pilav & Makarna', AR: 'أرز وباستا', ZH: '米饭与面食', JA: 'ライス＆パスタ'
+        CS: 'Rýže a těstoviny', EL: 'Ρύζι & Ζυмарικά', TR: 'Pilav & Makarna', AR: 'أرز وباستا', ZH: '米饭与面食', JA: 'ライス＆パスタ'
     }, 
     { 
         id: '4', 
@@ -62,7 +62,7 @@ const categoriesList = [
     { 
         id: '7', 
         ES: 'Niños', EN: 'Kids', DE: 'Kinder', FR: 'Enfants', IT: 'Bambini',
-        RU: 'Детское меню', NL: 'Kinderen', PL: 'Dla dzieci', SV: 'Barn', NO: 'Barn',
+        RU: 'Детское menu', NL: 'Kinderen', PL: 'Dla dzieci', SV: 'Barn', NO: 'Barn',
         DA: 'Børn', FI: 'Lapset', PT: 'Crianças', RO: 'Copii', HU: 'Gyerekeknek',
         CS: 'Pro děti', EL: 'Παιδικά', TR: 'Çocuklar', AR: 'أطفال', ZH: '儿童餐', JA: 'キッズメニュー'
     }, 
@@ -135,7 +135,7 @@ const subCatsLang = {
         ES: 'Copas', EN: 'By the Glass', DE: 'Glasweise', FR: 'Au Verre', IT: 'Al Calice',
         RU: 'По бокалам', NL: 'Per glas', PL: 'Na kieliszki', SV: 'Glasvis', NO: 'Glassvis',
         DA: 'Pr. glas', FI: 'Laseittain', PT: 'A copo', RO: 'La pahar', HU: 'Pohárral',
-        CS: 'Rozlévaná vína', EL: 'Σε Ποτήρι', TR: 'Kadehte', AR: 'بأقداح الكأس', ZH: '杯装酒', JA: 'グラスワイン'
+        CS: 'Rozlévaná vína', EL: 'Σε Ποτήri', TR: 'Kadehte', AR: 'بأقداح الكأس', ZH: '杯装酒', JA: 'グラスワイン'
     },
     otras: {
         ES: 'Otras D.O.', EN: 'Other D.O.', DE: 'Andere D.O.', FR: 'Autres D.O.', IT: 'Altre D.O.',
@@ -215,7 +215,7 @@ function populateLanguageSelect() {
         if (!['ES','EN','DE','FR','IT'].includes(code)) {
             const opt = document.createElement('option');
             opt.value = code;
-            opt.textContent = name;
+            opt.textContent = name; // Aquí ya se incluye el emoji de la bandera de IDIOMAS
             select.appendChild(opt);
         }
     });
