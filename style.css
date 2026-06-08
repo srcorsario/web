@@ -48,21 +48,31 @@ header {
     backdrop-filter: blur(10px); 
 }
 
-/* NUEVO: Contenedor flexible para ubicar los logos discretamente en la parte superior */
+/* MODIFICADO: Distribuido con space-between para fijar un logo a la izquierda y otro a la derecha */
 .header-logos {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
     gap: 12px;
     margin-bottom: 8px;
 }
 
-/* NUEVO: Normalización de tamaño para que ambos logos sean pequeños, simbólicos y visualmente idénticos */
+/* MODIFICADO: Se remueven las alturas globales fijas para especificarlas individualmente abajo */
 .header-logo {
-    height: 24px;
-    max-height: 24px;
     object-fit: contain;
     vertical-align: middle;
+}
+
+/* NUEVO: El logo de la izquierda se define con el doble de tamaño (48px) */
+img.header-logo[src*="logo RG_REST.png"] {
+    height: 48px;
+    max-height: 48px;
+}
+
+/* NUEVO: El logo de la derecha se define con tamaño estándar (24px) */
+img.header-logo[src*="negro.png"] {
+    height: 24px;
+    max-height: 24px;
 }
 
 #language-selector { 
