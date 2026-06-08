@@ -1,13 +1,16 @@
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9rPlxpax2lE0rN97c6Hoy_OxUwREqRb48juEBr9C91ZFY2UvaKgC8JdiRcwDrtBErXFVmFRh0Zr5e/pub?gid=0&single=true&output=csv';
-const APP_VERSION = 'v3.0.2'; 
+const APP_VERSION = 'v3.0.3'; 
 
-// MODIFICADO: Registro global con banderas para los idiomas autonómicos
+// MODIFICADO: Sanitización de banderas autonómicas mediante secuencias Unicode para evitar alertas de caracteres ocultos en GitHub
 const IDIOMAS = {
     ES: "🇪🇸 Español", EN: "🇬🇧 English", DE: "🇩🇪 Deutsch", FR: "🇫🇷 Français", IT: "🇮🇹 Italiano",
     RU: "🇷🇺 Русский", NL: "🇳🇱 Nederlands", PL: "🇵🇱 Polski", SV: "🇸🇪 Svenska", NO: "🇳🇴 Norsk",
     DA: "🇩🇰 Dansk", FI: "🇫🇮 Suomi", PT: "🇵🇹 Português", RO: "🇷🇴 Română", HU: "🇭🇺 Magyar",
     CS: "🇨🇿 Čeština", EL: "🇬🇷 Ελληνικά", TR: "🇹🇷 Türkçe", AR: "🇦🇪 العربية", ZH: "🇨🇳 中文", JA: "🇯🇵 日本語",
-    CA: "🏴󠁡󠁲󠁣󠁡󠁴󠁿 Català", EU: "🏴󠁡󠁲󠁰󠁶󠁿 Euskara", GL: "🏴󠁡󠁲⠛󠁡󠁿 Galego", VA: "🏴󠁡󠁲󠁶󠁣󠁿 Valencià" // MODIFICADO: Con emojis de banderas
+    CA: "\uD83C\uDFF4\uDB40\uDC61\uDB40\uDC72\uDB40\uDC63\uDB40\uDC61\uDB40\uDC74\uDB40\uDC7F Català",   // MODIFICADO: Unicode seguro para bandera de Cataluña
+    EU: "\uD83C\uDFF4\uDB40\uDC61\uDB40\uDC72\uDB40\uDC70\uDB40\uDC76\uDB40\uDC7F Euskara",   // MODIFICADO: Unicode seguro para bandera del País Vasco
+    GL: "\uD83C\uDFF4\uDB40\uDC61\uDB40\uDC72\uDB40\uDC67\uDB40\uDC61\uDB40\uDC7F Galego",    // MODIFICADO: Unicode seguro para bandera de Galicia
+    VA: "\uD83C\uDFF4\uDB40\uDC61\uDB40\uDC72\uDB40\uDC76\uDB40\uDC63\uDB40\uDC7F Valencià"   // MODIFICADO: Unicode seguro para bandera de la C. Valenciana
 };
 
 let allData = [];
@@ -18,7 +21,6 @@ let preloadQueue = [];
 let isPreloading = false;
 let currentPreloadSession = 0;
 
-// MODIFICADO: Inclusión total de traducciones autonómicas para evitar el fallback automático a inglés
 const categoriesList = [ 
     { 
         id: '12', 
@@ -26,7 +28,7 @@ const categoriesList = [
         RU: 'Предложения', NL: 'Suggesties', PL: 'Sugestie', SV: 'Förslag', NO: 'Forslag',
         DA: 'Forslag', FI: 'Suositukset', PT: 'Sugestões', RO: 'Sugestii', HU: 'Ajánlatok',
         CS: 'Doporučení', EL: 'Προτάσεις', TR: 'Öneriler', AR: 'اقتraحات', ZH: '推荐', JA: 'おすすめ',
-        CA: 'Suggeriments', EU: 'Gomendioak', GL: 'Suxestións', VA: 'Suggeriments' // NUEVO
+        CA: 'Suggeriments', EU: 'Gomendioak', GL: 'Suxestións', VA: 'Suggeriments'
     }, 
     { 
         id: '1', 
@@ -34,7 +36,7 @@ const categoriesList = [
         RU: 'Закуски', NL: 'Voorgerechten', PL: 'Przystawki', SV: 'Förrätter', NO: 'Forretter',
         DA: 'Forretter', FI: 'Alkuruoat', PT: 'Entradas', RO: 'Gustări', HU: 'Előételek',
         CS: 'Předkrmy', EL: 'Ορεκτικά', TR: 'Başlangıçlar', AR: 'مقبلات', ZH: '前菜', JA: '前菜',
-        CA: 'Entrants', EU: 'Hastekoak', GL: 'Entrantes', VA: 'Entrants' // NUEVO
+        CA: 'Entrants', EU: 'Hastekoak', GL: 'Entrantes', VA: 'Entrants'
     }, 
     { 
         id: '2', 
@@ -42,7 +44,7 @@ const categoriesList = [
         RU: 'Салаты', NL: 'Salades', PL: 'Sałatky', SV: 'Sallader', NO: 'Salater',
         DA: 'Salater', FI: 'Salaatit', PT: 'Saladas', RO: 'Salate', HU: 'Saláták',
         CS: 'Saláty', EL: 'Σαλάτες', TR: 'Salatalar', AR: 'سلطات', ZH: '沙拉', JA: 'サラダ',
-        CA: 'Amanides', EU: 'Entsaladak', GL: 'Ensaladas', VA: 'Amanides' // NUEVO
+        CA: 'Amanides', EU: 'Entsaladak', GL: 'Ensaladas', VA: 'Amanides'
     }, 
     { 
         id: '3', 
@@ -50,7 +52,7 @@ const categoriesList = [
         RU: 'Рис и паста', NL: 'Rijst & Pasta', PL: 'Ryż i Makaron', SV: 'Ris & Pasta', NO: 'Ris og pasta',
         DA: 'Ris & Pasta', FI: 'Riisi & Pasta', PT: 'Arroz e Massa', RO: 'Orez și paste', HU: 'Rizs és tészták',
         CS: 'Rýže a těstoviny', EL: 'Ρύζι & Ζυμαρικά', TR: 'Pilav & Makarna', AR: 'أرز وباستا', ZH: '米饭与面食', JA: 'ライス＆パスタ',
-        CA: 'Arrossos i Pastes', EU: 'Arrozak eta Pastak', GL: 'Arroces e Pastas', VA: 'Arrossos i Pastes' // NUEVO
+        CA: 'Arrossos i Pastes', EU: 'Arrozak eta Pastak', GL: 'Arroces e Pastas', VA: 'Arrossos i Pastes'
     }, 
     { 
         id: '4', 
@@ -58,15 +60,15 @@ const categoriesList = [
         RU: 'Рецепты', NL: 'Recepten', PL: 'Przepisy', SV: 'Recept', NO: 'Oppskrifter',
         DA: 'Opskrifter', FI: 'Reseptit', PT: 'Receitas', RO: 'Rețete', HU: 'Receptek',
         CS: 'Recepty', EL: 'Συνταγές', TR: 'Tarifler', AR: 'وصفات', ZH: '特色菜', JA: 'レシピ',
-        CA: 'Receptes', EU: 'Erreceptak', GL: 'Receitas', VA: 'Receptes' // NUEVO
+        CA: 'Receptes', EU: 'Erreceptak', GL: 'Receitas', VA: 'Receptes'
     }, 
     { 
         id: '5', 
         ES: 'Principales', EN: 'Mains', DE: 'Hauptspeisen', FR: 'Plats', IT: 'Piatti',
         RU: 'Основные блюда', NL: 'Hoofdgerechten', PL: 'Dania główne', SV: 'Huvudrätter', NO: 'Hovedrätter',
         DA: 'Hovedretter', FI: 'Pääruoat', PT: 'Pratos principales', RO: 'Feluri principale', HU: 'Főételek',
-        CS: 'Hlavní jídla', EL: 'Κυρίως Πιάτα', TR: 'Ana Yemekler', AR: 'أطباق رئيسية', ZH: '主菜', JA: 'メインディッシュ',
-        CA: 'Principals', EU: 'Plater Nagusiak', GL: 'Principais', VA: 'Principals' // NUEVO
+        CS: 'Hlavní jídla', EL: 'Κυρίως Πιάta', TR: 'Ana Yemekler', AR: 'أطباق رئيسية', ZH: '主菜', JA: 'メインディッシュ',
+        CA: 'Principals', EU: 'Plater Nagusiak', GL: 'Principais', VA: 'Principals'
     }, 
     { 
         id: '7', 
@@ -74,7 +76,7 @@ const categoriesList = [
         RU: 'Детское меню', NL: 'Kinderen', PL: 'Dla dzieci', SV: 'Barn', NO: 'Barn',
         DA: 'Børn', FI: 'Lapset', PT: 'Crianças', RO: 'Copii', HU: 'Gyerekeknek',
         CS: 'Pro děti', EL: 'Παιδικά', TR: 'Çocuklar', AR: 'أطفال', ZH: '儿童餐', JA: 'キッズメニュー',
-        CA: 'Nens', EU: 'Umeak', GL: 'Nenos', VA: 'Xiquets' // NUEVO
+        CA: 'Nens', EU: 'Umeak', GL: 'Nenos', VA: 'Xiquets'
     }, 
     { 
         id: '8', 
@@ -82,7 +84,7 @@ const categoriesList = [
         RU: 'Десерты', NL: 'Desserts', PL: 'Desery', SV: 'Efterrätter', NO: 'Desesser',
         DA: 'Desesser', FI: 'Jälkiruoat', PT: 'Sobremesas', RO: 'Deserturi', HU: 'Desszertek',
         CS: 'Dezerty', EL: 'Επιδόρπια', TR: 'Tatlılar', AR: 'حلويات', ZH: '甜点', JA: 'デザート',
-        CA: 'Postres', EU: 'Postreak', GL: 'Postres', VA: 'Postres' // NUEVO
+        CA: 'Postres', EU: 'Postreak', GL: 'Postres', VA: 'Postres'
     }, 
     { 
         id: '9', 
@@ -90,7 +92,7 @@ const categoriesList = [
         RU: 'Кофе', NL: 'Koffie', PL: 'Kawa', SV: 'Kaffe', NO: 'Kaffe',
         DA: 'Kaffe', FI: 'Kahvi', PT: 'Café', RO: 'Cafea', HU: 'Kávé',
         CS: 'Káva', EL: 'Καφές', TR: 'Kahve', AR: 'قهوة', ZH: '咖啡', JA: 'コーヒー',
-        CA: 'Cafè', EU: 'Kafea', GL: 'Café', VA: 'Cafè' // NUEVO
+        CA: 'Cafè', EU: 'Kafea', GL: 'Café', VA: 'Cafè'
     }, 
     { 
         id: '10', 
@@ -98,7 +100,7 @@ const categoriesList = [
         RU: 'Напитки', NL: 'Dranken', PL: 'Napoje', SV: 'Drycker', NO: 'Drikke',
         DA: 'Drikkevarer', FI: 'Juomat', PT: 'Bebidas', RO: 'Băuturi', HU: 'Italok',
         CS: 'Nápoje', EL: 'Ποτά', TR: 'İçecekler', AR: 'مشروبات', ZH: '饮料', JA: 'ドリンク',
-        CA: 'Begudes', EU: 'Edariak', GL: 'Bebidas', VA: 'Begudes' // NUEVO
+        CA: 'Begudes', EU: 'Edariak', GL: 'Bebidas', VA: 'Begudes'
     }, 
     { 
         id: '11', 
@@ -106,7 +108,7 @@ const categoriesList = [
         RU: 'Пиво', NL: 'Bieren', PL: 'Piwa', SV: 'Öl', NO: 'Øl',
         DA: 'Øl', FI: 'Olutta', PT: 'Cervejas', RO: 'Beri', HU: 'Sörök',
         CS: 'Priva', EL: 'Μπύρες', TR: 'Biralar', AR: 'بيرة', ZH: '啤酒', JA: 'ビール',
-        CA: 'Cerveses', EU: 'Garagardoak', GL: 'Cervexas', VA: 'Cerveses' // NUEVO
+        CA: 'Cerveses', EU: 'Garagardoak', GL: 'Cervexas', VA: 'Cerveses'
     }, 
     { 
         id: '131', 
@@ -114,7 +116,7 @@ const categoriesList = [
         RU: 'Белые вина', NL: 'Witte wijnen', PL: 'Białe wina', SV: 'Vita viner', NO: 'Hvite viner',
         DA: 'Hvidvine', FI: 'Valkoviinit', PT: 'Vinhos brancos', RO: 'Vinuri albe', HU: 'Fehérborok',
         CS: 'Bílá vína', EL: 'Λευκά Κraσιά', TR: 'Beyaz Şaraplar', AR: 'نبيذ أبيض', ZH: '白葡萄酒', JA: '白ワイン',
-        CA: 'Vins Blancs', EU: 'Ardo Zuriak', GL: 'Viños Brancos', VA: 'Vins Blancs' // NUEVO
+        CA: 'Vins Blancs', EU: 'Ardo Zuriak', GL: 'Viños Brancos', VA: 'Vins Blancs'
     }, 
     { 
         id: '132', 
@@ -122,15 +124,15 @@ const categoriesList = [
         RU: 'Розовые вина', NL: 'Rosé wijnen', PL: 'Wina różowe', SV: 'Roséviner', NO: 'Roséviner',
         DA: 'Rosévine', FI: 'Roséviinit', PT: 'Vinhos rosés', RO: 'Vinuri roze', HU: 'Rozé borok',
         CS: 'Růžová vína', EL: 'Ροζέ Κraσιά', TR: 'Roze Şaraplar', AR: 'نبيذ روزيه', ZH: '桃红葡萄酒', JA: 'ロゼワイン',
-        CA: 'Vins Rosats', EU: 'Ardo Arrosak', GL: 'Viños Rosados', VA: 'Vins Rosats' // NUEVO
+        CA: 'Vins Rosats', EU: 'Ardo Arrosak', GL: 'Viños Rosados', VA: 'Vins Rosats'
     }, 
     { 
         id: '133', 
         ES: 'Vinos Tintos', EN: 'Red Wines', DE: 'Rotweine', FR: 'Vins Rouges', IT: 'Vini Rossi',
-        RU: 'Красные вина', NL: 'Rode wijnen', PL: 'Czerwone wina', SV: 'Röda viner', NO: 'Røde viner',
+        RU: 'Kрасные вина', NL: 'Rode wijnen', PL: 'Czerwone wina', SV: 'Röda viner', NO: 'Røde viner',
         DA: 'Rødvine', FI: 'Punaviinit', PT: 'Vinhos tintos', RO: 'Vinuri roșii', HU: 'Vörösborok',
         CS: 'Červená vína', EL: 'Κόκκινα Κraσιά', TR: 'Kırmızı Şaraplar', AR: 'نبيذ أحمر', ZH: '红葡萄酒', JA: '赤ワイン',
-        CA: 'Vins Negres', EU: 'Ardo Beltzak', GL: 'Viños Tintos', VA: 'Vins Negres' // NUEVO
+        CA: 'Vins Negres', EU: 'Ardo Beltzak', GL: 'Viños Tintos', VA: 'Vins Negres'
     }, 
     { 
         id: '134', 
@@ -138,60 +140,59 @@ const categoriesList = [
         RU: 'Кава и Шампанское', NL: 'Cava & Champagne', PL: 'Cava i Szampan', SV: 'Cava & Champagne', NO: 'Cava og champagne',
         DA: 'Cava & Champagne', FI: 'Cava & Samppanja', PT: 'Cavas e Champagne', RO: 'Cava & Șampanie', HU: 'Cava és pezsgők',
         CS: 'Cava a Šampaňské', EL: 'Cava & Σαμπάνια', TR: 'Kava & Şampanya', AR: 'كافا وشامبانيا', ZH: '卡瓦与香槟', JA: 'カヴァ＆シャンパン',
-        CA: 'Caves i Xampany', EU: 'Cabak eta Xanpaina', GL: 'Cavas e Champán', VA: 'Caves i Xampany' // NUEVO
+        CA: 'Caves i Xampany', EU: 'Cabak eta Xanpaina', GL: 'Cavas e Champán', VA: 'Caves i Xampany'
     }
 ];
 
-// MODIFICADO: Inclusión total de traducciones autonómicas para subcategorías de vinos
 const subCatsLang = {
     mallorca: {
         ES: 'Vinos de Mallorca', EN: 'Majorcan Wines', DE: 'Weine aus Mallorca', FR: 'Vins de Majorque', IT: 'Vini di Maiorca',
         RU: 'Мальорканские вина', NL: 'Mallorquijnse wijnen', PL: 'Wina z Majorki', SV: 'Mallorkinska viner', NO: 'Mallorcanske viner',
         DA: 'Mallorcanske vine', FI: 'Mallorcalaiset viinit', PT: 'Vinhos de Maiorca', RO: 'Vinuri de Mallorca', HU: 'Mallorcai borok',
         CS: 'Mallorská vína', EL: 'Κρασιά της Μαγιόρκα', TR: 'Mallorca Şarapları', AR: 'نبيذ مايوركا', ZH: '马略卡葡萄酒', JA: 'マヨルカワイン',
-        CA: 'Vins de Mallorca', EU: 'Mallorcako Ardoak', GL: 'Viños de Mallorca', VA: 'Vins de Mallorca' // NUEVO
+        CA: 'Vins de Mallorca', EU: 'Mallorcako Ardoak', GL: 'Viños de Mallorca', VA: 'Vins de Mallorca'
     },
     copas: {
         ES: 'Copas', EN: 'By the Glass', DE: 'Glasweise', FR: 'Au Verre', IT: 'Al Calice',
         RU: 'По бокалам', NL: 'Per glas', PL: 'Na kieliszki', SV: 'Glasvis', NO: 'Glassvis',
         DA: 'Pr. glas', FI: 'Laseittain', PT: 'A copo', RO: 'La pahar', HU: 'Pohárral',
         CS: 'Rozlévaná vína', EL: 'Σε Ποτήρι', TR: 'Kadehte', AR: 'بأقداح الكأس', ZH: '杯装酒', JA: 'グラスワイン',
-        CA: 'Copes', EU: 'Kopak', GL: 'Copas', VA: 'Copes' // NUEVO
+        CA: 'Copes', EU: 'Kopak', GL: 'Copas', VA: 'Copes'
     },
     otras: {
         ES: 'Otras D.O.', EN: 'Other D.O.', DE: 'Andere D.O.', FR: 'Autres D.O.', IT: 'Altre D.O.',
         RU: 'Другие D.O.', NL: 'Overige D.O.', PL: 'Inne D.O.', SV: 'Andra D.O.', NO: 'Andre D.O.',
         DA: 'Andre D.O.', FI: 'Muut D.O.', PT: 'Outras D.O.', RO: 'Alte D.O.', HU: 'Egyéb D.O.',
         CS: 'Ostatní D.O.', EL: 'Άλλες D.O.', TR: 'Diğer D.O.', AR: 'تسميات منشأ أخرى', ZH: '其他D.O.产区', JA: 'その他のD.O.',
-        CA: 'Altres D.O.', EU: 'Beste J.I.', GL: 'Outras D.O.', VA: 'Altres D.O.' // NUEVO
+        CA: 'Altres D.O.', EU: 'Beste J.I.', GL: 'Outras D.O.', VA: 'Altres D.O.'
     },
     galicia: {
         ES: 'Galicia', EN: 'Galicia', DE: 'Galicien', FR: 'Galice', IT: 'Galizia',
         RU: 'Галисия', NL: 'Galicië', PL: 'Galcja', SV: 'Galicien', NO: 'Galicia',
         DA: 'Galicien', FI: 'Galicia', PT: 'Galiza', RO: 'Galicia', HU: 'Galícia',
         CS: 'Galicie', EL: 'Γαλικία', TR: 'Galiçya', AR: 'غاليسيا', ZH: '加利西亚', JA: 'ガリシア',
-        CA: 'Galícia', EU: 'Galizia', GL: 'Galicia', VA: 'Galícia' // NUEVO
+        CA: 'Galícia', EU: 'Galizia', GL: 'Galicia', VA: 'Galícia'
     },
     rueda: {
         ES: 'Rueda', EN: 'Rueda', DE: 'Rueda', FR: 'Rueda', IT: 'Rueda',
         RU: 'Руэда', NL: 'Rueda', PL: 'Rueda', SV: 'Rueda', NO: 'Rueda',
         DA: 'Rueda', FI: 'Rueda', PT: 'Rueda', RO: 'Rueda', HU: 'Rueda',
         CS: 'Rueda', EL: 'Ρουέδα', TR: 'Rueda', AR: 'رويدا', ZH: '卢埃达', JA: 'ルエダ',
-        CA: 'Rueda', EU: 'Rueda', GL: 'Rueda', VA: 'Rueda' // NUEVO
+        CA: 'Rueda', EU: 'Rueda', GL: 'Rueda', VA: 'Rueda'
     },
     rioja: {
         ES: 'Rioja', EN: 'Rioja', DE: 'Rioja', FR: 'Rioja', IT: 'Rioja',
         RU: 'Риоха', NL: 'Rioja', PL: 'Rioja', SV: 'Rioja', NO: 'Rioja',
         DA: 'Rioja', FI: 'Rioja', PT: 'Rioja', RO: 'Rioja', HU: 'Rioja',
         CS: 'Rioja', EL: 'Ριόχα', TR: 'Rioja', AR: 'ريوخا', ZH: '里奥哈', JA: 'リオハ',
-        CA: 'Rioja', EU: 'Errioxa', GL: 'Rioja', VA: 'Rioja' // NUEVO
+        CA: 'Rioja', EU: 'Errioxa', GL: 'Rioja', VA: 'Rioja'
     },
     ribera: {
         ES: 'Ribera', EN: 'Ribera', DE: 'Ribera', FR: 'Ribera', IT: 'Ribera',
         RU: 'Рибера', NL: 'Ribera', PL: 'Ribera', SV: 'Ribera', NO: 'Ribera',
         DA: 'Ribera', FI: 'Ribera', PT: 'Ribera', RO: 'Ribera', HU: 'Ribera',
         CS: 'Ribera', EL: 'Ριμπέρα', TR: 'Ribera', AR: 'ريبيرا', ZH: '杜埃罗河岸', JA: 'リベラ',
-        CA: 'Ribera', EU: 'Erribera', GL: 'Ribera', VA: 'Ribera' // NUEVO
+        CA: 'Ribera', EU: 'Erribera', GL: 'Ribera', VA: 'Ribera'
     }
 };
 
@@ -213,7 +214,7 @@ const wineSubCats = [
 
 async function init() { 
     try { 
-        injectVisualIndicatorStyles(); // Inyecta la animación de la manita interactiva
+        injectVisualIndicatorStyles(); 
         populateLanguageSelect();
 
         const response = await fetch(CSV_URL); 
@@ -228,7 +229,7 @@ async function init() {
             renderMenu(); 
             updateLanguageUI();
             managePreload(); 
-            setupScrollListener(); // Listener para borrar la manita cuando el cliente use el menú
+            setupScrollListener(); 
         } 
     } catch (e) { console.error("Error en la inicialización:", e); }
 }
@@ -254,7 +255,6 @@ function injectVisualIndicatorStyles() {
         #category-selector::-webkit-scrollbar {
             display: none;
         }
-        /* La manita indicadora */
         .scroll-hint-hand {
             position: absolute;
             right: 25px;
@@ -281,7 +281,6 @@ function injectVisualIndicatorStyles() {
             70% { transform: translateY(-50%) translateX(-35px); opacity: 0.9; }
             100% { transform: translateY(-50%) translateX(-45px); opacity: 0; }
         }
-        /* Sombra derecha clásica para complementar */
         .nav-container-interactive::after {
             content: '';
             position: absolute;
@@ -306,9 +305,8 @@ function setupScrollListener() {
         if (hint) {
             hint.style.opacity = '0';
             hint.style.transform = 'translateY(-50%) scale(0.5)';
-            setTimeout(() => hint.remove(), 400); // La elimina del mapa para que no estorbe jamás
+            setTimeout(() => hint.remove(), 400); 
         }
-        // Quitamos los listeners una vez activado para optimizar memoria
         selector.removeEventListener('scroll', hideHint);
         selector.removeEventListener('touchstart', hideHint);
     };
@@ -317,17 +315,14 @@ function setupScrollListener() {
     selector.addEventListener('touchstart', hideHint);
 }
 
-// MODIFICADO: Reestructuración completa para posicionar en primer orden los 4 idiomas regionales solicitados
 function populateLanguageSelect() {
     const select = document.getElementById('more-langs');
     if (!select) return;
      
     select.innerHTML = '<option value="">🌐 Más...</option>';
      
-    // NUEVO: Definición del orden de prioridad explícito para la cabecera del desplegable
     const ordenPrioritario = ['CA', 'EU', 'VA', 'GL'];
     
-    // NUEVO: Renderizar primero los 4 idiomas cooficiales prioritarios
     ordenPrioritario.forEach(code => {
         if (IDIOMAS[code]) {
             const opt = document.createElement('option');
@@ -337,7 +332,6 @@ function populateLanguageSelect() {
         }
     });
     
-    // MODIFICADO: Renderizar el resto de idiomas, excluyendo tanto los de la botonera como los prioritarios ya agregados
     Object.entries(IDIOMAS).forEach(([code, name]) => {
         if (!['ES','EN','DE','FR','IT'].includes(code) && !ordenPrioritario.includes(code)) {
             const opt = document.createElement('option');
@@ -425,14 +419,12 @@ function renderCategories() {
     const nav = document.getElementById('category-selector'); 
     if (!nav) return;
 
-    // Encapsulamos automáticamente el selector e inyectamos el div de la "manita flotante"
     if (nav.parentNode && !nav.parentNode.classList.contains('nav-container-interactive')) {
         const wrapper = document.createElement('div');
         wrapper.className = 'nav-container-interactive';
         nav.parentNode.insertBefore(wrapper, nav);
         wrapper.appendChild(nav);
          
-        // Creamos la manita interactiva animada
         const handHint = document.createElement('div');
         handHint.className = 'scroll-hint-hand';
         handHint.innerHTML = '👉'; 
@@ -480,10 +472,9 @@ function renderMenu() {
     if (currentCat === '5') { 
         const guarnis = allData.filter(item => item.id.toString().startsWith('6') && item.id.toString().length === 4 && item.activa === 'SI'); 
         if (guarnis.length > 0) { 
-            // MODIFICADO: Añadidas traducciones autonómicas completas para el título de guarniciones
             const guarniTitles = { 
                 ES: 'Guarniciones', EN: 'Side Dishes', DE: 'Beilagen', FR: 'Garnitures', IT: 'Contorni',
-                CA: 'Guarnicions', EU: 'Garnizioak', GL: 'Guarnicións', VA: 'Guarnicions' // NUEVO
+                CA: 'Guarnicions', EU: 'Garnizioak', GL: 'Guarnicións', VA: 'Guarnicions'
             }; 
             const titleText = guarniTitles[currentLang] || guarniTitles['EN'] || guarniTitles['ES']; 
             const finalGuarniTitle = currentLang === 'ES' ? titleText : `${titleText} - ${guarniTitles['ES']}`;
