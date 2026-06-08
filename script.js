@@ -1,16 +1,16 @@
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9rPlxpax2lE0rN97c6Hoy_OxUwREqRb48juEBr9C91ZFY2UvaKgC8JdiRcwDrtBErXFVmFRh0Zr5e/pub?gid=0&single=true&output=csv';
-const APP_VERSION = 'v3.0.3'; 
+const APP_VERSION = 'v3.0.4'; 
 
-// MODIFICADO: Sanitización de banderas autonómicas mediante secuencias Unicode para evitar alertas de caracteres ocultos en GitHub
+// MODIFICADO: Emojis culturales supercompatibles que evitan alertas en GitHub y errores de visualización en Windows
 const IDIOMAS = {
     ES: "🇪🇸 Español", EN: "🇬🇧 English", DE: "🇩🇪 Deutsch", FR: "🇫🇷 Français", IT: "🇮🇹 Italiano",
     RU: "🇷🇺 Русский", NL: "🇳🇱 Nederlands", PL: "🇵🇱 Polski", SV: "🇸🇪 Svenska", NO: "🇳🇴 Norsk",
     DA: "🇩🇰 Dansk", FI: "🇫🇮 Suomi", PT: "🇵🇹 Português", RO: "🇷🇴 Română", HU: "🇭🇺 Magyar",
     CS: "🇨🇿 Čeština", EL: "🇬🇷 Ελληνικά", TR: "🇹🇷 Türkçe", AR: "🇦🇪 العربية", ZH: "🇨🇳 中文", JA: "🇯🇵 日本語",
-    CA: "\uD83C\uDFF4\uDB40\uDC61\uDB40\uDC72\uDB40\uDC63\uDB40\uDC61\uDB40\uDC74\uDB40\uDC7F Català",   // MODIFICADO: Unicode seguro para bandera de Cataluña
-    EU: "\uD83C\uDFF4\uDB40\uDC61\uDB40\uDC72\uDB40\uDC70\uDB40\uDC76\uDB40\uDC7F Euskara",   // MODIFICADO: Unicode seguro para bandera del País Vasco
-    GL: "\uD83C\uDFF4\uDB40\uDC61\uDB40\uDC72\uDB40\uDC67\uDB40\uDC61\uDB40\uDC7F Galego",    // MODIFICADO: Unicode seguro para bandera de Galicia
-    VA: "\uD83C\uDFF4\uDB40\uDC61\uDB40\uDC72\uDB40\uDC76\uDB40\uDC63\uDB40\uDC7F Valencià"   // MODIFICADO: Unicode seguro para bandera de la C. Valenciana
+    CA: "🏰 Català",     // MODIFICADO: Castillo (Castellers / Historia)
+    EU: "🌳 Euskara",    // MODIFICADO: Árbol (Gernika / Naturaleza)
+    GL: "🐙 Galego",     // MODIFICADO: Pulpo (Gastronomía)
+    VA: "🥘 Valencià"    // MODIFICADO: Paella (Gastronomía)
 };
 
 let allData = [];
@@ -156,7 +156,7 @@ const subCatsLang = {
         ES: 'Copas', EN: 'By the Glass', DE: 'Glasweise', FR: 'Au Verre', IT: 'Al Calice',
         RU: 'По бокалам', NL: 'Per glas', PL: 'Na kieliszki', SV: 'Glasvis', NO: 'Glassvis',
         DA: 'Pr. glas', FI: 'Laseittain', PT: 'A copo', RO: 'La pahar', HU: 'Pohárral',
-        CS: 'Rozlévaná vína', EL: 'Σε Ποτήρι', TR: 'Kadehte', AR: 'بأقداح الكأس', ZH: '杯装酒', JA: 'グラスワイン',
+        CS: 'Rozlévaná vína', EL: 'Σε Πoτήρι', TR: 'Kadehte', AR: 'بأقداح الكأس', ZH: '杯装酒', JA: 'グラスワイン',
         CA: 'Copes', EU: 'Kopak', GL: 'Copas', VA: 'Copes'
     },
     otras: {
