@@ -1,11 +1,13 @@
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9rPlxpax2lE0rN97c6Hoy_OxUwREqRb48juEBr9C91ZFY2UvaKgC8JdiRcwDrtBErXFVmFRh0Zr5e/pub?gid=0&single=true&output=csv';
 const APP_VERSION = 'v3.0.2'; 
 
+// MODIFICADO: Registro global de claves internas y etiquetas legibles para los nuevos idiomas
 const IDIOMAS = {
     ES: "🇪🇸 Español", EN: "🇬🇧 English", DE: "🇩🇪 Deutsch", FR: "🇫🇷 Français", IT: "🇮🇹 Italiano",
     RU: "🇷🇺 Русский", NL: "🇳🇱 Nederlands", PL: "🇵🇱 Polski", SV: "🇸🇪 Svenska", NO: "🇳🇴 Norsk",
     DA: "🇩🇰 Dansk", FI: "🇫🇮 Suomi", PT: "🇵🇹 Português", RO: "🇷🇴 Română", HU: "🇭🇺 Magyar",
-    CS: "🇨🇿 Čeština", EL: "🇬🇷 Ελληνικά", TR: "🇹🇷 Türkçe", AR: "🇦🇪 العربية", ZH: "🇨🇳 中文", JA: "🇯🇵 日本語"
+    CS: "🇨🇿 Čeština", EL: "🇬🇷 Ελληνικά", TR: "🇹🇷 Türkçe", AR: "🇦🇪 العربية", ZH: "🇨🇳 中文", JA: "🇯🇵 日本語",
+    CA: "Català", EU: "Euskara", GL: "Galego", VA: "Valencià" // NUEVO
 };
 
 let allData = [];
@@ -22,7 +24,7 @@ const categoriesList = [
         ES: 'Sugerencias', EN: 'Suggestions', DE: 'Vorschläge', FR: 'Suggestions', IT: 'Suggerimenti',
         RU: 'Предложения', NL: 'Suggesties', PL: 'Sugestie', SV: 'Förslag', NO: 'Forslag',
         DA: 'Forslag', FI: 'Suositukset', PT: 'Sugestões', RO: 'Sugestii', HU: 'Ajánlatok',
-        CS: 'Doporučení', EL: 'Προτάσεις', TR: 'Öneriler', AR: 'اقتراحات', ZH: '推荐', JA: 'おすすめ'
+        CS: 'Doporučení', EL: 'Προτάσεις', TR: 'Öneriler', AR: 'اقتraحات', ZH: '推荐', JA: 'おすすめ'
     }, 
     { 
         id: '1', 
@@ -55,8 +57,8 @@ const categoriesList = [
     { 
         id: '5', 
         ES: 'Principales', EN: 'Mains', DE: 'Hauptspeisen', FR: 'Plats', IT: 'Piatti',
-        RU: 'Основные блюda', NL: 'Hoofdgerechten', PL: 'Dania główne', SV: 'Huvudrätter', NO: 'Hovedretter',
-        DA: 'Hovedretter', FI: 'Pääruoat', PT: 'Pratos principais', RO: 'Feluri principale', HU: 'Főételek',
+        RU: 'Основные блюда', NL: 'Hoofdgerechten', PL: 'Dania główne', SV: 'Huvudrätter', NO: 'Hovedrätter',
+        DA: 'Hovedretter', FI: 'Pääruoat', PT: 'Pratos principales', RO: 'Feluri principale', HU: 'Főételek',
         CS: 'Hlavní jídla', EL: 'Κυρίως Πιάτα', TR: 'Ana Yemekler', AR: 'أطباق رئيسية', ZH: '主菜', JA: 'メインディッシュ'
     }, 
     { 
@@ -92,7 +94,7 @@ const categoriesList = [
         ES: 'Cervezas', EN: 'Beers', DE: 'Biere', FR: 'Bières', IT: 'Birre',
         RU: 'Пиво', NL: 'Bieren', PL: 'Piwa', SV: 'Öl', NO: 'Øl',
         DA: 'Øl', FI: 'Olutta', PT: 'Cervejas', RO: 'Beri', HU: 'Sörök',
-        CS: 'Piva', EL: 'Μπύρες', TR: 'Biralar', AR: 'بيرة', ZH: '啤酒', JA: 'ビール'
+        CS: 'Priva', EL: 'Μπύρες', TR: 'Biralar', AR: 'بيرة', ZH: '啤酒', JA: 'ビール'
     }, 
     { 
         id: '131', 
@@ -327,6 +329,7 @@ function updateLanguageUI() {
     }
 }
 
+// MODIFICADO: Extensión del mapeador de índices para capturar las 4 columnas de lenguas cooficiales
 function parseCSV(text) { 
     const rows = []; 
     const lines = text.split(/\r?\n(?=(?:(?:[^"]*"){2})*[^"]*$)/); 
@@ -361,7 +364,11 @@ function parseCSV(text) {
             nombre_tr: col[23] ? clean(col[23]) : "",
             nombre_ar: col[24] ? clean(col[24]) : "",
             nombre_zh: col[25] ? clean(col[25]) : "",
-            nombre_ja: col[26] ? clean(col[26]) : ""
+            nombre_ja: col[26] ? clean(col[26]) : "",
+            nombre_ca: col[27] ? clean(col[27]) : "", // NUEVO
+            nombre_eu: col[28] ? clean(col[28]) : "", // NUEVO
+            nombre_gl: col[29] ? clean(col[29]) : "", // NUEVO
+            nombre_va: col[30] ? clean(col[30]) : ""  // NUEVO
         }); 
     } 
     return rows;
