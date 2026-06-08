@@ -48,11 +48,28 @@ header {
     backdrop-filter: blur(10px); 
 }
 
+/* NUEVO: Contenedor flexible para ubicar los logos discretamente en la parte superior */
+.header-logos {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+/* NUEVO: Normalización de tamaño para que ambos logos sean pequeños, simbólicos y visualmente idénticos */
+.header-logo {
+    height: 24px;
+    max-height: 24px;
+    object-fit: contain;
+    vertical-align: middle;
+}
+
 #language-selector { 
     display: flex; 
     flex-wrap: wrap; 
     justify-content: center; 
-    align-items: center;
+    align-items: center; 
     background: #f2f2f7; 
     border-radius: 10px; 
     padding: 4px; 
