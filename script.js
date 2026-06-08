@@ -13,6 +13,15 @@ const IDIOMAS = {
     VA: "🥘 Valencià"    // MODIFICADO: Paella (Gastronomía)
 };
 
+// NUEVO: Diccionario multilingüe integrado para la palabra central del encabezado
+const MENU_TEXTS = {
+    ES: "Menú", EN: "Menu", DE: "Menü", FR: "Menu", IT: "Menu",
+    RU: "Меню", NL: "Menu", PL: "Menu", SV: "Meny", NO: "Meny",
+    DA: "Menu", FI: "Menu", PT: "Menu", RO: "Meniu", HU: "Menü",
+    CS: "Menu", EL: "Μενού", TR: "Menü", AR: "قائمة", ZH: "菜单", JA: "メニュー",
+    CA: "Menú", EU: "Menu", GL: "Menú", VA: "Menú"
+};
+
 let allData = [];
 let currentLang = 'ES', currentCat = '12';
 let currentGalleryPath = '', currentPhotoIndex = 1, maxPhotosFound = 1;
@@ -163,7 +172,7 @@ const subCatsLang = {
         ES: 'Otras D.O.', EN: 'Other D.O.', DE: 'Andere D.O.', FR: 'Autres D.O.', IT: 'Altre D.O.',
         RU: 'Другие D.O.', NL: 'Overige D.O.', PL: 'Inne D.O.', SV: 'Andra D.O.', NO: 'Andre D.O.',
         DA: 'Andre D.O.', FI: 'Muut D.O.', PT: 'Outras D.O.', RO: 'Alte D.O.', HU: 'Egyéb D.O.',
-        CS: 'Ostatní D.O.', EL: 'Άλλες D.O.', TR: 'Diğer D.O.', AR: 'تسميات منشأ أخرى', ZH: '其他D.O.产区', JA: 'その他のD.O.',
+        CS: 'Ostatní D.O.', EL: 'Άλλες D.O.', TR: 'Diğer D.O.', AR: 'تسميات منшأ أخرى', ZH: '其他D.O.产区', JA: 'その他のD.O.',
         CA: 'Altres D.O.', EU: 'Beste J.I.', GL: 'Outras D.O.', VA: 'Altres D.O.'
     },
     galicia: {
@@ -184,7 +193,7 @@ const subCatsLang = {
         ES: 'Rioja', EN: 'Rioja', DE: 'Rioja', FR: 'Rioja', IT: 'Rioja',
         RU: 'Риоха', NL: 'Rioja', PL: 'Rioja', SV: 'Rioja', NO: 'Rioja',
         DA: 'Rioja', FI: 'Rioja', PT: 'Rioja', RO: 'Rioja', HU: 'Rioja',
-        CS: 'Rioja', EL: 'Ριόχα', TR: 'Rioja', AR: 'ريوخا', ZH: '里奥哈', JA: 'リオハ',
+        CS: 'Rioja', EL: 'Ριόχα', TR: 'Rioja', AR: 'ريوخα', ZH: '里奥哈', JA: 'リオハ',
         CA: 'Rioja', EU: 'Errioxa', GL: 'Rioja', VA: 'Rioja'
     },
     ribera: {
@@ -343,6 +352,12 @@ function populateLanguageSelect() {
 }
 
 function updateLanguageUI() {
+    // NUEVO: Manejo defensivo del DOM para actualizar la palabra central según el idioma seleccionado
+    const menuTitleEl = document.getElementById('header-menu-title');
+    if (menuTitleEl) {
+        menuTitleEl.textContent = MENU_TEXTS[currentLang] || MENU_TEXTS['ES'];
+    }
+
     document.querySelectorAll('#language-selector button').forEach(b => {
         b.classList.remove('active');
         const code = b.id.replace('btn-', '');
@@ -445,8 +460,8 @@ function renderMenu() {
     const catName = catObj ? (catObj[currentLang] || catObj['EN'] || catObj['ES']) : "";
     const translatedTitle = currentLang === 'ES' ? catName : `${catName} - ${catObj['ES']}`;
      
-    title.innerHTML = `${translatedTitle} <span style="font-size: 0.4em; opacity: 0.5; font-weight: normal; margin-left: 10px;">${APP_VERSION}</span>`; 
-    grid.innerHTML = '';
+    if (title) title.innerHTML = `${translatedTitle} <span style="font-size: 0.4em; opacity: 0.5; font-weight: normal; margin-left: 10px;">${APP_VERSION}</span>`; 
+    if (grid) grid.innerHTML = '';
 
     const filtered = allData.filter(item => { 
         return isItemInCategory(item.id, currentCat) && item.activa === 'SI' && (item.id % 1000 !== 0); 
@@ -457,7 +472,7 @@ function renderMenu() {
         const idNum = parseInt(item.id); 
         if (currentCat.startsWith('13')) { 
             const foundSub = wineSubCats.find(s => idNum >= s.start && idNum <= s.end); 
-            if (foundSub) {
+            if (foundSub && grid) {
                 const subCatName = foundSub[currentLang] || foundSub['EN'] || foundSub['ES'];
                 const finalSubName = currentLang === 'ES' ? subCatName : `${subCatName} - ${foundSub['ES']}`;
                 if (finalSubName !== currentActiveSubCatName) { 
@@ -466,12 +481,12 @@ function renderMenu() {
                 }
             } 
         } 
-        grid.innerHTML += generateItemHtml(item); 
+        if (grid) grid.innerHTML += generateItemHtml(item); 
     });
 
     if (currentCat === '5') { 
         const guarnis = allData.filter(item => item.id.toString().startsWith('6') && item.id.toString().length === 4 && item.activa === 'SI'); 
-        if (guarnis.length > 0) { 
+        if (guarnis.length > 0 && grid) { 
             const guarniTitles = { 
                 ES: 'Guarniciones', EN: 'Side Dishes', DE: 'Beilagen', FR: 'Garnitures', IT: 'Contorni',
                 CA: 'Guarnicions', EU: 'Garnizioak', GL: 'Guarnicións', VA: 'Guarnicions'
@@ -588,7 +603,8 @@ async function openGallery(base) {
     maxPhotosFound = 1;
 
     updateModal(); 
-    document.getElementById('photo-modal').style.display = 'flex';
+    const modal = document.getElementById('photo-modal');
+    if (modal) modal.style.display = 'flex';
 
     for (let i = 2; i <= 4; i++) { 
         const url = `${base}0${i}.webp`; 
@@ -615,13 +631,17 @@ async function openGallery(base) {
 }
 
 function updateModal() { 
-    document.getElementById('modal-img').src = `${currentGalleryPath}0${currentPhotoIndex}.webp`; 
-    document.getElementById('prev-btn').style.display = currentPhotoIndex > 1 ? 'block' : 'none'; 
-    document.getElementById('next-btn').style.display = currentPhotoIndex < maxPhotosFound ? 'block' : 'none';
+    const img = document.getElementById('modal-img');
+    const prev = document.getElementById('prev-btn');
+    const next = document.getElementById('next-btn');
+
+    if (img) img.src = `${currentGalleryPath}0${currentPhotoIndex}.webp`; 
+    if (prev) prev.style.display = currentPhotoIndex > 1 ? 'block' : 'none'; 
+    if (next) next.style.display = currentPhotoIndex < maxPhotosFound ? 'block' : 'none';
 }
 
 function changePhoto(n) { currentPhotoIndex += n; updateModal(); }
-function closeModal() { document.getElementById('photo-modal').style.display = 'none'; }
+function closeModal() { const modal = document.getElementById('photo-modal'); if (modal) modal.style.display = 'none'; }
 
 function changeLanguage(l) { 
     if (!l) return;
