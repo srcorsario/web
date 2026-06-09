@@ -165,7 +165,7 @@ const subCatsLang = {
         ES: 'Copas', EN: 'By the Glass', DE: 'Glasweise', FR: 'Au Verre', IT: 'Al Calice',
         RU: 'По бокалам', NL: 'Per glas', PL: 'Na kieliszki', SV: 'Glasvis', NO: 'Glassvis',
         DA: 'Pr. glas', FI: 'Laseittain', PT: 'A copo', RO: 'La pahar', HU: 'Pohárral',
-        CS: 'Rozlévaná vína', EL: 'Σε Πoτήρι', TR: 'Kadehte', AR: 'بأقداح الكأس', ZH: '杯装酒', JA: 'グラスワイン',
+        CS: 'Rozlévaná vína', EL: 'Σε Πoτήri', TR: 'Kadehte', AR: 'بأقداح الكأس', ZH: '杯装酒', JA: 'グラスワイン',
         CA: 'Copes', EU: 'Kopak', GL: 'Copas', VA: 'Copes'
     },
     otras: {
@@ -510,7 +510,8 @@ function generateItemHtml(item, isGuarni = false) {
     const secondaryData = processName(item.nombre_es); 
 
     const price = (isGuarni && parseInt(item.id) < 6100) ? '' : (parseFloat(item.precio) > 0 ? `${parseFloat(item.precio).toFixed(2)}€` : ''); 
-    const alergenosHtml = item.alergenos.map(a => `<img src="imagenes/alergenos/${a}.webp" onerror="this.style.display='none'">`).join('');  
+    // MODIFICADO: Agregado loading="lazy" de forma nativa para prevenir el bloqueo de ancho de banda móvil por iconos menores
+    const alergenosHtml = item.alergenos.map(a => `<img src="imagenes/alergenos/${a}.webp" loading="lazy" onerror="this.style.display='none'">`).join('');  
      
     let photoIcon = ''; 
     let clickAction = ''; 
@@ -576,6 +577,13 @@ async function processPreloadQueue(session) {
     if (isPreloading) return; 
     isPreloading = true;
 
+    // NUEVO: Verificación condicional de red para suspender la precarga masiva si se detecta baja cobertura (2g/3g) o ahorro de datos activado
+    const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    if (conn && (conn.saveData || /2g|3g/.test(conn.effectiveType || ''))) {
+        isPreloading = false;
+        return;
+    }
+
     while (preloadQueue.length > 0) { 
         if (session !== currentPreloadSession) { isPreloading = false; return; }  
         const task = preloadQueue.shift(); 
@@ -587,6 +595,10 @@ async function processPreloadQueue(session) {
         }
 
         if (verifiedImages[url] !== undefined) continue;
+
+        // NUEVO: Espaciado controlado asíncrono (150ms) entre peticiones de precarga para no congestionar el ancho de banda móvil del cliente
+        await new Promise(resolve => setTimeout(resolve, 150));
+        if (session !== currentPreloadSession) { isPreloading = false; return; }
 
         const success = await new Promise(resolve => { 
             const img = new Image(); 
