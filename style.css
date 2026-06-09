@@ -24,10 +24,10 @@
 /* --- FIN ALÉRGENOS --- */
 
 :root { 
-    --bg: #ffffff; 
-    --text: #1c1c1e; 
-    --grey: #8e8e93; 
-    --border: #e5e5ea; 
+    var(--bg): #ffffff; 
+    var(--text): #1c1c1e; 
+    var(--grey): #8e8e93; 
+    var(--border): #e5e5ea; 
 }
 
 body { 
@@ -270,4 +270,29 @@ img.header-logo[src*="negro.png"] {
     padding-top: 10px; 
     border-top: 2px solid #eee; 
     font-size: 20px; 
+}
+
+/* NUEVO: Estilos estructurales del Skeleton Loader para simular inmediatez de datos con baja cobertura móvil */
+.skeleton-row {
+    pointer-events: none;
+}
+.skeleton-text {
+    display: block;
+    height: 14px;
+    background: linear-gradient(90deg, #f2f2f7 25%, #e5e5ea 50%, #f2f2f7 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite linear;
+    border-radius: 4px;
+    margin-bottom: 6px;
+}
+.skeleton-text.line-70 { width: 70%; height: 16px; }
+.skeleton-text.line-60 { width: 60%; height: 16px; }
+.skeleton-text.line-50 { width: 50%; height: 16px; }
+.skeleton-text.line-40 { width: 40%; }
+.skeleton-text.line-30 { width: 30%; }
+.skeleton-text.line-20 { width: 45px; height: 16px; }
+
+@keyframes skeleton-loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
 }
