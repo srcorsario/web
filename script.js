@@ -1,5 +1,5 @@
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9rPlxpax2lE0rN97c6Hoy_OxUwREqRb48juEBr9C91ZFY2UvaKgC8JdiRcwDrtBErXFVmFRh0Zr5e/pub?gid=0&single=true&output=csv';
-const APP_VERSION = 'v3.0.4'; 
+const APP_VERSION = 'v3.0.5'; 
 
 // MODIFICADO: Emojis culturales supercompatibles que evitan alertas en GitHub y errores de visualización en Windows
 const IDIOMAS = {
@@ -82,7 +82,7 @@ const categoriesList = [
     { 
         id: '7', 
         ES: 'Niños', EN: 'Kids', DE: 'Kinder', FR: 'Enfants', IT: 'Bambini',
-        RU: 'Детское меню', NL: 'Kinderen', PL: 'Dla dzieci', SV: 'Barn', NO: 'Barn',
+        RU: 'Детское menu', NL: 'Kinderen', PL: 'Dla dzieci', SV: 'Barn', NO: 'Barn',
         DA: 'Børn', FI: 'Lapset', PT: 'Crianças', RO: 'Copii', HU: 'Gyerekeknek',
         CS: 'Pro děti', EL: 'Παιδικά', TR: 'Çocuklar', AR: 'أطفال', ZH: '儿童餐', JA: 'キッズメニュー',
         CA: 'Nens', EU: 'Umeak', GL: 'Nenos', VA: 'Xiquets'
@@ -117,7 +117,7 @@ const categoriesList = [
         RU: 'Пиво', NL: 'Bieren', PL: 'Piwa', SV: 'Öl', NO: 'Øl',
         DA: 'Øl', FI: 'Olutta', PT: 'Cervejas', RO: 'Beri', HU: 'Sörök',
         CS: 'Priva', EL: 'Μπύρες', TR: 'Biralar', AR: 'بيرة', ZH: '啤酒', JA: 'ビール',
-        CA: 'Cerveses', EU: 'Garagardoak', GL: 'Cervexas', VA: 'Cerveses'
+        CA: 'Cerveses', EU: 'Garagardoak', GL: 'Cerveses', VA: 'Cerveses'
     }, 
     { 
         id: '131', 
@@ -562,8 +562,12 @@ function managePreload() {
     const otherFoodItems = sortedData.filter(i => !isItemInCategory(i.id, currentCat) && parseInt(i.id) < 13000 && i.archivo && i.activa === 'SI'); 
     addCategoryByLevels(otherFoodItems);
 
-    const wineItems = sortedData.filter(i => !isItemInCategory(i.id, currentCat) && parseInt(i.id) >= 13000 && i.archivo && i.activa === 'SI'); 
-    addCategoryByLevels(wineItems);
+    // MODIFICADO: Bloque condicional defensivo para mitigar el consumo innecesario de datos móviles globales. 
+    // Los recursos de la bodega de vinos general solo se encolarán si el comensal navega dentro de secciones vinícolas explícitas (ID inicia con '13').
+    if (currentCat && currentCat.toString().startsWith('13')) {
+        const wineItems = sortedData.filter(i => !isItemInCategory(i.id, currentCat) && parseInt(i.id) >= 13000 && i.archivo && i.activa === 'SI'); 
+        addCategoryByLevels(wineItems);
+    }
 
     processPreloadQueue(mySession);
 }
