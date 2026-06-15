@@ -4,7 +4,9 @@
 // =========================================
 
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9rPlxpax2lE0rN97c6Hoy_OxUwREqRb48juEBr9C91ZFY2UvaKgC8JdiRcwDrtBErXFVmFRh0Zr5e/pub?gid=0&single=true&output=csv';
-const APP_VERSION = 'v3.0.5'; 
+// NUEVO: Se registra la URL actualizada del App Script para las peticiones de sincronización del sistema
+const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxBdhrRWx9GNYU_oub52jQcRrG-XRhcDIjdHHW_CYQlob3PNButhNinqw-JLNES_3Ci-w/exec';
+const APP_VERSION = 'v3.0.6'; 
 
 // MODIFICADO: Agregado Coreano (KO) con su respectivo emoji compatible
 const IDIOMAS = {
@@ -12,20 +14,19 @@ const IDIOMAS = {
     RU: "🇷🇺 Русский", NL: "🇳🇱 Nederlands", PL: "🇵🇱 Polski", SV: "🇸🇪 Svenska", NO: "🇳🇴 Norsk",
     DA: "🇩🇰 Dansk", FI: "🇫🇮 Suomi", PT: "🇵🇹 Português", RO: "🇷🇴 Română", HU: "🇭🇺 Magyar",
     CS: "🇨🇿 Čeština", EL: "🇬🇷 Ελληνικά", TR: "🇹🇷 Türkçe", AR: "🇦🇪 العربية", ZH: "🇨🇳 中文", JA: "🇯🇵 日本語",
-    KO: "🇰🇷 한국어",     // NUEVO: Idioma coreano integrado
+    KO: "🇰🇷 한국어",     
     CA: "🏰 Català",     
     EU: "🌳 Euskara",    
     GL: "🐙 Galego",     
     VA: "🥘 Valencià"    
 };
 
-// MODIFICADO: Agregado el texto traducido para el encabezado en coreano
 const MENU_TEXTS = {
     ES: "Menú", EN: "Menu", DE: "Menü", FR: "Menu", IT: "Menu",
     RU: "Меню", NL: "Menu", PL: "Menu", SV: "Meny", NO: "Meny",
     DA: "Menu", FI: "Menu", PT: "Menu", RO: "Meniu", HU: "Menü",
     CS: "Menu", EL: "Μενού", TR: "Menü", AR: "قائمة", ZH: "菜单", JA: "メニュー",
-    KO: "메뉴",     // NUEVO: Traducción centralizada en coreano
+    KO: "메뉴",     
     CA: "Menú", EU: "Menu", GL: "Menú", VA: "Menú"
 };
 
@@ -37,7 +38,6 @@ let preloadQueue = [];
 let isPreloading = false;
 let currentPreloadSession = 0;
 
-// MODIFICADO: Integración de la clave 'KO' con sus traducciones en la lista de categorías fijas
 const categoriesList = [ 
     { 
         id: '12', 
@@ -122,7 +122,7 @@ const categoriesList = [
     { 
         id: '11', 
         ES: 'Cervezas', EN: 'Beers', DE: 'Biere', FR: 'Bières', IT: 'Birre',
-        RU: 'Пиво', NL: 'Bieren', PL: 'Piwa', SV: 'Öl', NO: 'Øl',
+        RU: 'Пиvo', NL: 'Bieren', PL: 'Piwa', SV: 'Öl', NO: 'Øl',
         DA: 'Øl', FI: 'Olutta', PT: 'Cervejas', RO: 'Beri', HU: 'Sörök',
         CS: 'Priva', EL: 'Μπύρες', TR: 'Biralar', AR: 'بيرة', ZH: '啤酒', JA: 'ビール',
         KO: '맥주', CA: 'Cerveses', EU: 'Garagardoak', GL: 'Cerveses', VA: 'Cerveses'
@@ -161,7 +161,6 @@ const categoriesList = [
     }
 ];
 
-// MODIFICADO: Integración de la clave 'KO' con sus traducciones en los diccionarios de subcategorías
 const subCatsLang = {
     mallorca: {
         ES: 'Vinos de Mallorca', EN: 'Majorcan Wines', DE: 'Weine aus Mallorca', FR: 'Vins de Majorque', IT: 'Vini di Maiorca',
@@ -363,7 +362,7 @@ function populateLanguageSelect() {
 function updateLanguageUI() {
     const menuTitleEl = document.getElementById('header-menu-title');
     if (menuTitleEl) {
-        menuTitleEl.textContent = MENU_TEXTTexts[currentLang] || MENU_TEXTTexts['ES'];
+        menuTitleEl.textContent = MENU_TEXTS[currentLang] || MENU_TEXTS['ES'];
     }
 
     document.querySelectorAll('#language-selector button').forEach(b => {
@@ -424,7 +423,7 @@ function parseCSV(text) {
             nombre_eu: col[28] ? clean(col[28]) : "", 
             nombre_gl: col[29] ? clean(col[29]) : "", 
             nombre_va: col[30] ? clean(col[30]) : "",  
-            nombre_ko: col[31] ? clean(col[31]) : ""   // NUEVO: Extracción de la columna AF (Índice 31)
+            nombre_ko: col[31] ? clean(col[31]) : ""   
         }); 
     } 
     return rows;
@@ -498,7 +497,7 @@ function renderMenu() {
         if (guarnis.length > 0 && grid) { 
             const guarniTitles = { 
                 ES: 'Guarniciones', EN: 'Side Dishes', DE: 'Beilagen', FR: 'Garnitures', IT: 'Contorni',
-                KO: '사이드 메뉴', CA: 'Guarnicions', EU: 'Garnizioak', GL: 'Guarnicións', VA: 'Guarnicions' // MODIFICADO: Añadido traducción coreana a guarniciones
+                KO: '사이드 메뉴', CA: 'Guarnicions', EU: 'Garnizioak', GL: 'Guarnicións', VA: 'Guarnicions' 
             }; 
             const titleText = guarniTitles[currentLang] || guarniTitles['EN'] || guarniTitles['ES']; 
             const finalGuarniTitle = currentLang === 'ES' ? titleText : `${titleText} - ${guarniTitles['ES']}`;
@@ -515,7 +514,6 @@ function generateItemHtml(item, isGuarni = false) {
         return { name: parts[0] || '', uvas: parts[1] || '' }; 
     }; 
 
-    // MODIFICADO: Adición de la evaluación condicional dinámica para 'nombre_ko'
     const currentData = processName(item[`nombre_${currentLang.toLowerCase()}`] || item.nombre_es); 
     const secondaryData = processName(item.nombre_es); 
 
