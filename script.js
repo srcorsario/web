@@ -5,7 +5,7 @@
 
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9rPlxpax2lE0rN97c6Hoy_OxUwREqRb48juEBr9C91ZFY2UvaKgC8JdiRcwDrtBErXFVmFRh0Zr5e/pub?gid=0&single=true&output=csv';
 // NUEVO: Se registra la URL actualizada del App Script para las peticiones de sincronización del sistema
-const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx5syu488o2wQzt3fNcgM70kb3QUin_POUIGOe5EnuY9UNbMhG_kdVxW8uvcLuQFPhzXw/exec';
+const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxzYtWuB8w8ATMEGzhzMOa9oZhVgLRacolJYfuPuLgZ7IKctE6dZwzmk_22_F_Uva2SzQ/exec';
 const APP_VERSION = 'v3.0.6'; 
 
 // MODIFICADO: Agregado Coreano (KO) con su respectivo emoji compatible
