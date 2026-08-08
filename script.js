@@ -558,9 +558,8 @@ function generateItemHtml(item, isGuarni = false) {
     // Lógica de ubicación del icono de info según las reglas solicitadas:
     // 1. Si existe foto, poner el icono de info justo al lado del icono de foto
     // 2. Si no existe foto pero hay descripción, ponerlo al final de la descripción
-    const infoPlacement = (item.archivo && item.archivo.includes('01.webp')) 
-        ? `${photoIcon} ${infoIconHtml}` 
-        : (currentData.name ? `${currentData.name}${infoIconHtml}` : '');
+    // CORREGIDO: el nombre del plato debe mostrarse SIEMPRE; antes, cuando había foto, se sustituía por completo por los iconos
+    const infoPlacement = `${currentData.name}${photoIcon ? ' ' + photoIcon : ''}${infoIconHtml ? ' ' + infoIconHtml : ''}`;
 
     return ` 
     <div class="item-row"> 
