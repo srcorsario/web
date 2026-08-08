@@ -389,7 +389,8 @@ function parseCSV(text) {
     for (let i = 1; i < lines.length; i++) { 
         const col = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/); 
         if (col.length < 11) continue; 
-        const clean = (val) => val ? val.replace(/^"|"$/g, '').trim() : ""; 
+        // MODIFICADO: además de quitar comillas envolventes, desescapamos las comillas dobles internas ("" -> ") que Google Sheets añade al exportar a CSV (necesario para que el JSON de las columnas info_ sea válido)
+        const clean = (val) => val ? val.replace(/^"|"$/g, '').replace(/""/g, '"').trim() : ""; 
         
         // MODIFICADO: Construimos el objeto base primero
         const item = { 
