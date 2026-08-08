@@ -219,6 +219,93 @@ img.header-logo[src*="negro.png"] {
     100% { transform: scale(1); }
 }
 
+/* NUEVO: Estilos para el icono de información del plato y su modal de preguntas */
+.emoji-info {
+    display: inline-block;
+    cursor: pointer;
+    margin-left: 8px;
+    font-size: 20px;
+    vertical-align: middle;
+    transition: transform 0.2s ease;
+}
+.emoji-info:hover {
+    transform: scale(1.2);
+}
+
+#info-modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.9);
+    z-index: 3000;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+.info-modal-content {
+    background: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    animation: info-modal-appear 0.3s ease;
+}
+@keyframes info-modal-appear {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+.info-modal-content .close-modal {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    color: #333;
+    font-size: 30px;
+    cursor: pointer;
+    line-height: 1;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+.info-modal-content .close-modal:hover {
+    background: #e2e8f0;
+}
+.info-desc {
+    font-size: 16px;
+    line-height: 1.5;
+    margin-bottom: 15px;
+    color: #333;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+.info-qa {
+    margin-bottom: 10px;
+    font-size: 15px;
+    line-height: 1.5;
+    color: #555;
+    border-left: 4px solid #007BFF;
+    padding-left: 10px;
+}
+.info-qa b {
+    font-weight: 700;
+    color: #222;
+}
+.info-a {
+    color: #444;
+    display: block;
+    margin-top: 4px;
+}
+
 #photo-modal { 
     display: none; 
     position: fixed; 
