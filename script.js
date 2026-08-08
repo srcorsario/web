@@ -1,3 +1,4 @@
+// [🔒 ARCHIVO DIVIDIDO - PARTE 1 DE 2]
 // =========================================
 // REPOSITORIO: web (PRINCIPAL)
 // ARCHIVO: script.js
@@ -13,7 +14,7 @@ const IDIOMAS = {
     ES: "🇪🇸 Español", EN: "🇬🇧 English", DE: "🇩🇪 Deutsch", FR: "🇫🇷 Français", IT: "🇮🇹 Italiano",
     RU: "🇷🇺 Русский", NL: "🇳🇱 Nederlands", PL: "🇵🇱 Polski", SV: "🇸🇪 Svenska", NO: "🇳🇴 Norsk",
     DA: "🇩🇰 Dansk", FI: "🇫🇮 Suomi", PT: "🇵🇹 Português", RO: "🇷🇴 Română", HU: "🇭🇺 Magyar",
-    CS: "🇨🇿 Čeština", EL: "🇬🇷 Ελληνικά", TR: "🇹🇷 Türkçe", AR: "🇦🇪 العربية", ZH: "🇨🇳 中文", JA: "🇯🇵 日本語",
+    CS: "🇨🇿 Čeština", EL: "🇬🇷 Ελληνικά", TR: "🇹🇷 Türkçe", AR: "🇸🇪 العربية", ZH: "🇨🇳 中文", JA: "🇯🇵 日本語",
     KO: "🇰🇷 한국어",     
     CA: "🏰 Català",     
     EU: "🌳 Euskara",    
@@ -26,8 +27,7 @@ const MENU_TEXTS = {
     RU: "Меню", NL: "Menu", PL: "Menu", SV: "Meny", NO: "Meny",
     DA: "Menu", FI: "Menu", PT: "Menu", RO: "Meniu", HU: "Menü",
     CS: "Menu", EL: "Μενού", TR: "Menü", AR: "قائمة", ZH: "菜单", JA: "メニュー",
-    KO: "메뉴",     
-    CA: "Menú", EU: "Menu", GL: "Menú", VA: "Menú"
+    KO: "메뉴", CA: "Menú", EU: "Menu", GL: "Menú", VA: "Menú"
 };
 
 let allData = [];
@@ -84,7 +84,7 @@ const categoriesList = [
         ES: 'Principales', EN: 'Mains', DE: 'Hauptspeisen', FR: 'Plats', IT: 'Piatti',
         RU: 'Основные блюда', NL: 'Hoofdgerechten', PL: 'Dania główne', SV: 'Huvudrätter', NO: 'Hovedrätter',
         DA: 'Hovedretter', FI: 'Pääruoat', PT: 'Pratos principales', RO: 'Feluri principale', HU: 'Főételek',
-        CS: 'Hlavní jídla', EL: 'Κυρίως Πιάta', TR: 'Ana Yemekler', AR: 'أطباق رئيسية', ZH: '主菜', JA: 'メインディッシュ',
+        CS: 'Hlavní jídla', EL: 'Κυρίως Πιάτα', TR: 'Ana Yemekler', AR: 'أطباق رئيسية', ZH: '主菜', JA: 'メインディッシュ',
         KO: '메인 요리', CA: 'Principals', EU: 'Plater Nagusiak', GL: 'Principais', VA: 'Principals'
     }, 
     { 
@@ -122,7 +122,7 @@ const categoriesList = [
     { 
         id: '11', 
         ES: 'Cervezas', EN: 'Beers', DE: 'Biere', FR: 'Bières', IT: 'Birre',
-        RU: 'Пиvo', NL: 'Bieren', PL: 'Piwa', SV: 'Öl', NO: 'Øl',
+        RU: 'Пиво', NL: 'Bieren', PL: 'Piwa', SV: 'Öl', NO: 'Øl',
         DA: 'Øl', FI: 'Olutta', PT: 'Cervejas', RO: 'Beri', HU: 'Sörök',
         CS: 'Priva', EL: 'Μπύρες', TR: 'Biralar', AR: 'بيرة', ZH: '啤酒', JA: 'ビール',
         KO: '맥주', CA: 'Cerveses', EU: 'Garagardoak', GL: 'Cerveses', VA: 'Cerveses'
@@ -132,7 +132,7 @@ const categoriesList = [
         ES: 'Vinos Blancos', EN: 'White Wines', DE: 'Weissweine', FR: 'Vins Blancs', IT: 'Vini Bianchi',
         RU: 'Белые вина', NL: 'Witte wijnen', PL: 'Białe wina', SV: 'Vita viner', NO: 'Hvite viner',
         DA: 'Hvidvine', FI: 'Valkoviinit', PT: 'Vinhos brancos', RO: 'Vinuri albe', HU: 'Fehérborok',
-        CS: 'Bílá vína', EL: 'Λευκά Κraσιά', TR: 'Beyaz Şaraplar', AR: 'نبيذ أبيض', ZH: '白葡萄酒', JA: '白ワイン',
+        CS: 'Bílá vína', EL: 'Λευκά Κρασιά', TR: 'Beyaz Şaraplar', AR: 'نبيذ أبيض', ZH: '白葡萄酒', JA: '白ワイン',
         KO: '화이트 와인', CA: 'Vins Blancs', EU: 'Ardo Zuriak', GL: 'Viños Brancos', VA: 'Vins Blancs'
     }, 
     { 
@@ -140,15 +140,15 @@ const categoriesList = [
         ES: 'Vinos Rosados', EN: 'Rosé Wines', DE: 'Roséweine', FR: 'Vins Rosés', IT: 'Vini Rosati',
         RU: 'Розовые вина', NL: 'Rosé wijnen', PL: 'Wina różowe', SV: 'Roséviner', NO: 'Roséviner',
         DA: 'Rosévine', FI: 'Roséviinit', PT: 'Vinhos rosés', RO: 'Vinuri roze', HU: 'Rozé borok',
-        CS: 'Růžová vína', EL: 'Ροζέ Κraσιά', TR: 'Roze Şaraplar', AR: 'نبيذ روزيه', ZH: '桃红葡萄酒', JA: 'ロゼワイン',
+        CS: 'Růžová vína', EL: 'Ροζέ Κρασιά', TR: 'Roze Şaraplar', AR: 'نبيذ روزيه', ZH: '桃红葡萄酒', JA: 'ロゼワイン',
         KO: '로제 와인', CA: 'Vins Rosats', EU: 'Ardo Arrosak', GL: 'Viños Rosados', VA: 'Vins Rosats'
     }, 
     { 
         id: '133', 
         ES: 'Vinos Tintos', EN: 'Red Wines', DE: 'Rotweine', FR: 'Vins Rouges', IT: 'Vini Rossi',
-        RU: 'Kрасные вина', NL: 'Rode wijnen', PL: 'Czerwone wina', SV: 'Röda viner', NO: 'Røde viner',
+        RU: 'Красные вина', NL: 'Rode wijnen', PL: 'Czerwone wina', SV: 'Röda viner', NO: 'Røde viner',
         DA: 'Rødvine', FI: 'Punaviinit', PT: 'Vinhos tintos', RO: 'Vinuri roșii', HU: 'Vörösborok',
-        CS: 'Červená vína', EL: 'Κόκκινα Κraσιά', TR: 'Kırmızı Şaraplar', AR: 'نبيذ أحمر', ZH: '红葡萄酒', JA: '赤ワイン',
+        CS: 'Červená vína', EL: 'Κόκκινα Κρασιά', TR: 'Kırmızı Şaraplar', AR: 'نبيذ أحمر', ZH: '红葡萄酒', JA: '赤ワイン',
         KO: '레드 와인', CA: 'Vins Negres', EU: 'Ardo Beltzak', GL: 'Viños Tintos', VA: 'Vins Negres'
     }, 
     { 
@@ -166,21 +166,21 @@ const subCatsLang = {
         ES: 'Vinos de Mallorca', EN: 'Majorcan Wines', DE: 'Weine aus Mallorca', FR: 'Vins de Majorque', IT: 'Vini di Maiorca',
         RU: 'Мальорканские вина', NL: 'Mallorquijnse wijnen', PL: 'Wina z Majorki', SV: 'Mallorkinska viner', NO: 'Mallorcanske viner',
         DA: 'Mallorcanske vine', FI: 'Mallorcalaiset viinit', PT: 'Vinhos de Maiorca', RO: 'Vinuri de Mallorca', HU: 'Mallorcai borok',
-        CS: 'Mallorská vína', EL: 'Κρασιά της Μαγιόρка', TR: 'Mallorca Şarapları', AR: 'نبيذ مايوركا', ZH: '马略卡葡萄酒', JA: 'マヨルカワイン',
+        CS: 'Mallorská vína', EL: 'Κρασιά της Μαγιόρκα', TR: 'Mallorca Şarapları', AR: 'نبيذ مايوركا', ZH: '马略卡葡萄酒', JA: 'マヨルカワイン',
         KO: '마요르카 와인', CA: 'Vins de Mallorca', EU: 'Mallorcako Ardoak', GL: 'Viños de Mallorca', VA: 'Vins de Mallorca'
     },
     copas: {
         ES: 'Copas', EN: 'By the Glass', DE: 'Glasweise', FR: 'Au Verre', IT: 'Al Calice',
         RU: 'По бокалам', NL: 'Per glas', PL: 'Na kieliszki', SV: 'Glasvis', NO: 'Glassvis',
         DA: 'Pr. glas', FI: 'Laseittain', PT: 'A copo', RO: 'La pahar', HU: 'Pohárral',
-        CS: 'Rozlévaná vína', EL: 'Σε Πoτήri', TR: 'Kadehte', AR: 'بأقداح الكأس', ZH: '杯装酒', JA: 'グラスワイン',
+        CS: 'Rozlévaná vína', EL: 'Σε Πoτήρι', TR: 'Kadehte', AR: 'بأقداح الكأس', ZH: '杯装酒', JA: 'グラスワイン',
         KO: '글라스 와인', CA: 'Copes', EU: 'Kopak', GL: 'Copas', VA: 'Copes'
     },
     otras: {
         ES: 'Otras D.O.', EN: 'Other D.O.', DE: 'Andere D.O.', FR: 'Autres D.O.', IT: 'Altre D.O.',
         RU: 'Другие D.O.', NL: 'Overige D.O.', PL: 'Inne D.O.', SV: 'Andra D.O.', NO: 'Andre D.O.',
         DA: 'Andre D.O.', FI: 'Muut D.O.', PT: 'Outras D.O.', RO: 'Alte D.O.', HU: 'Egyéb D.O.',
-        CS: 'Ostatní D.O.', EL: 'Άλλες D.O.', TR: 'Diğer D.O.', AR: 'تسميات منшأ أخرى', ZH: '其他D.O.产区', JA: 'その他のD.O.',
+        CS: 'Ostatní D.O.', EL: 'Άλλες D.O.', TR: 'Diğer D.O.', AR: 'تسميات منشأ أخرى', ZH: '其他D.O.产区', JA: 'その他のD.O.',
         KO: '기타 D.O. 원산지', CA: 'Altres D.O.', EU: 'Beste J.I.', GL: 'Outras D.O.', VA: 'Altres D.O.'
     },
     galicia: {
@@ -201,7 +201,7 @@ const subCatsLang = {
         ES: 'Rioja', EN: 'Rioja', DE: 'Rioja', FR: 'Rioja', IT: 'Rioja',
         RU: 'Риоха', NL: 'Rioja', PL: 'Rioja', SV: 'Rioja', NO: 'Rioja',
         DA: 'Rioja', FI: 'Rioja', PT: 'Rioja', RO: 'Rioja', HU: 'Rioja',
-        CS: 'Rioja', EL: 'Ριόχα', TR: 'Rioja', AR: 'ريوخα', ZH: '里奥哈', JA: 'リオハ',
+        CS: 'Rioja', EL: 'Ριόχα', TR: 'Rioja', AR: 'ريوخا', ZH: '里奥哈', JA: 'リオハ',
         KO: '리오하', CA: 'Rioja', EU: 'Errioxa', GL: 'Rioja', VA: 'Rioja'
     },
     ribera: {
@@ -328,11 +328,7 @@ function setupScrollListener() {
         selector.removeEventListener('touchstart', hideHint);
     };
 
-    selector.addEventListener('scroll', hideHint);
-    selector.addEventListener('touchstart', hideHint);
-}
-
-function populateLanguageSelect() {
+    function populateLanguageSelect() {
     const select = document.getElementById('more-langs');
     if (!select) return;
      
@@ -391,7 +387,9 @@ function parseCSV(text) {
         const col = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/); 
         if (col.length < 11) continue; 
         const clean = (val) => val ? val.replace(/^"|"$/g, '').trim() : ""; 
-        rows.push({ 
+        
+        // MODIFICADO: Construimos el objeto base primero
+        const item = { 
             id: clean(col[0]), 
             precio: clean(col[1]).replace(',', '.'), 
             activa: clean(col[2]).toUpperCase(), 
@@ -424,7 +422,18 @@ function parseCSV(text) {
             nombre_gl: col[29] ? clean(col[29]) : "", 
             nombre_va: col[30] ? clean(col[30]) : "",  
             nombre_ko: col[31] ? clean(col[31]) : ""   
-        }); 
+        }; 
+
+        // NUEVO: Extraer columnas info_ dinámicamente según su posición en el CSV
+        const infoLangs = ['ar', 'ca', 'cs', 'da', 'de', 'el', 'en', 'es', 'eu', 'fi', 'fr', 'gl', 'hu', 'it', 'ja', 'ko', 'nl', 'no', 'pl', 'pt', 'ro', 'ru', 'sv', 'tr', 'va', 'zh'];
+        infoLangs.forEach((lang, idx) => {
+            const colIndex = 32 + idx;
+            if (col[colIndex] !== undefined) {
+                item[`info_${lang}`] = clean(col[colIndex]);
+            }
+        });
+
+        rows.push(item); 
     } 
     return rows;
 }
@@ -507,6 +516,7 @@ function renderMenu() {
     }
 }
 
+// MODIFICADO: Lógica para incluir el icono de información dinámico y el manejo del popup de preguntas/respuestas
 function generateItemHtml(item, isGuarni = false) { 
     const processName = (text) => { 
         if (!text) return { name: '', uvas: '' }; 
@@ -531,11 +541,28 @@ function generateItemHtml(item, isGuarni = false) {
         clickableStyle = 'style="cursor: pointer;"'; 
     }
 
+    // NUEVO: Comprobar si existe información para el idioma actual y generar el icono correspondiente
+    let infoIconHtml = '';
+    const infoKey = `info_${currentLang.toLowerCase()}`;
+    const infoData = item[infoKey];
+    if (infoData && infoData.trim() !== '') {
+        const escapedInfo = infoData.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        const infoClickHandler = `event.stopPropagation(); showInfoModal('${escapedInfo}')`;
+        infoIconHtml = `<span class="emoji-info" onclick="${infoClickHandler}" title="Info">ℹ️</span>`;
+    }
+
+    // Lógica de ubicación del icono de info según las reglas solicitadas:
+    // 1. Si existe foto, poner el icono de info justo al lado del icono de foto
+    // 2. Si no existe foto pero hay descripción, ponerlo al final de la descripción
+    const infoPlacement = (item.archivo && item.archivo.includes('01.webp')) 
+        ? `${photoIcon} ${infoIconHtml}` 
+        : (currentData.name ? `${currentData.name}${infoIconHtml}` : '');
+
     return ` 
     <div class="item-row"> 
         <div class="item-content" ${clickAction} ${clickableStyle}> 
             <span class="name-selected"> 
-                ${currentData.name} ${photoIcon} 
+                ${infoPlacement} 
                 ${currentData.uvas ? `<br><small style="font-size:0.85em; opacity:0.8; font-style:italic; display:block; margin-top:2px;">${currentData.uvas}</small>` : ''} 
             </span> 
             ${currentLang !== 'ES' ? ` 
@@ -560,7 +587,7 @@ function managePreload() {
     const addCategoryByLevels = (items) => { 
         const bases = items.map(item => `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`); 
         for (let level = 1; level <= 4; level++) { 
-            bases.forEach(base => { preloadQueue.push({ base, n: level }); }); 
+            bases.forEach(base => { preloadQueue.push({ base, n: level }); 
         } 
     };
 
@@ -662,6 +689,41 @@ function updateModal() {
 function changePhoto(n) { currentPhotoIndex += n; updateModal(); }
 function closeModal() { const modal = document.getElementById('photo-modal'); if (modal) modal.style.display = 'none'; }
 
+// NUEVO: Funcionalidad para mostrar el modal de información con preguntas y respuestas del plato
+function showInfoModal(jsonStr) {
+    let data;
+    try { 
+        data = JSON.parse(jsonStr); 
+    } catch(e) { 
+        console.error("Error al parsear info:", e); 
+        return; 
+    }
+
+    let modal = document.getElementById('info-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'info-modal';
+        document.body.appendChild(modal);
+    }
+
+    let html = `<div class="info-modal-content">
+        <span class="close-modal" onclick="closeInfoModal()">&times;</span>
+        <div class="info-desc">${data.desc || ''}</div>`;
+
+    if (data.q1 && data.r1) html += `<div class="info-qa"><b>Q: ${data.q1}</b><br><span class="info-a">A: ${data.r1}</span></div>`;
+    if (data.q2 && data.r2) html += `<div class="info-qa"><b>Q: ${data.q2}</b><br><span class="info-a">A: ${data.r2}</span></div>`;
+    if (data.q3 && data.r3) html += `<div class="info-qa"><b>Q: ${data.q3}</b><br><span class="info-a">A: ${data.r3}</span></div>`;
+
+    html += `</div>`;
+    modal.innerHTML = html;
+    modal.style.display = 'flex';
+}
+
+function closeInfoModal() {
+    const modal = document.getElementById('info-modal');
+    if (modal) modal.style.display = 'none';
+}
+
 function changeLanguage(l) { 
     if (!l) return;
     currentLang = l; 
@@ -688,3 +750,13 @@ function checkUrlHash() {
     const hash = window.location.hash.replace('#', ''); 
     if (hash && categoriesList.some(c => c.id === hash)) { filterCategory(hash); }
 }
+
+// NUEVO: Listener global para cerrar el modal de información al hacer clic fuera de él
+document.addEventListener('click', function(e) {
+    const modal = document.getElementById('info-modal');
+    if (modal && e.target === modal) {
+        closeInfoModal();
+    }
+});
+
+// [🔒 FIN DE PARTE 1 DE 2]
