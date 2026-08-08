@@ -1,4 +1,3 @@
-// [🔒 ARCHIVO DIVIDIDO - PARTE 1 DE 2]
 // =========================================
 // REPOSITORIO: web (PRINCIPAL)
 // ARCHIVO: script.js
@@ -328,7 +327,11 @@ function setupScrollListener() {
         selector.removeEventListener('touchstart', hideHint);
     };
 
-    function populateLanguageSelect() {
+    selector.addEventListener('scroll', hideHint);
+    selector.addEventListener('touchstart', hideHint);
+}
+
+function populateLanguageSelect() {
     const select = document.getElementById('more-langs');
     if (!select) return;
      
@@ -587,7 +590,7 @@ function managePreload() {
     const addCategoryByLevels = (items) => { 
         const bases = items.map(item => `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`); 
         for (let level = 1; level <= 4; level++) { 
-            bases.forEach(base => { preloadQueue.push({ base, n: level }); 
+            bases.forEach(base => { preloadQueue.push({ base, n: level }); }); 
         } 
     };
 
@@ -758,5 +761,3 @@ document.addEventListener('click', function(e) {
         closeInfoModal();
     }
 });
-
-// [🔒 FIN DE PARTE 1 DE 2]
