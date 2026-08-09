@@ -228,68 +228,41 @@ const wineSubCats = [
     { start: 13450, end: 13459, ...subCatsLang.copas }
 ];
 
-// NUEVO: subfamilias de la categoría 12 (Sugerencias del Chef). Mismos rangos de ID base
-// que usa el admin (Web_Editor_Pro_v3 / estructuras.js, RANGO 12000-12999) para que ambos
-// sitios agrupen los platos exactamente igual. Reutiliza el mismo patrón visual/técnico
-// que wineSubCats — un <h3 class="sub-category-title"> antes de cada bloque.
-const sugerenciasSubCats = [
-    { start: 12100, end: 12199,
-        ES: 'Croquetas', EN: 'Croquettes', DE: 'Kroketten', FR: 'Croquettes', IT: 'Crocchette',
-        RU: 'Крокеты', NL: 'Kroketten', PL: 'Krokiety', SV: 'Kroketter', NO: 'Kroketter',
-        DA: 'Kroketter', FI: 'Kroketit', PT: 'Croquetes', RO: 'Crochete', HU: 'Krokettek',
-        CS: 'Krokety', EL: 'Κροκέτες', TR: 'Kroketler', AR: 'كروكيت', ZH: '可乐饼', JA: 'コロッケ',
-        KO: '고로케', CA: 'Croquetes', EU: 'Kroketak', GL: 'Croquetas', VA: 'Croquetes'
-    },
-    { start: 12200, end: 12299,
-        ES: 'Croquetas Veg.', EN: 'Veggie Croquettes', DE: 'Vegetarische Kroketten', FR: 'Croquettes Végé', IT: 'Crocchette Veg.',
-        RU: 'Овощные крокеты', NL: 'Vegetarische Kroketten', PL: 'Krokiety Wegetariańskie', SV: 'Vegetariska Kroketter', NO: 'Vegetariske Kroketter',
-        DA: 'Vegetariske Kroketter', FI: 'Kasviskroketit', PT: 'Croquetes Veg.', RO: 'Crochete Veg.', HU: 'Vegetáriánus Krokettek',
-        CS: 'Vegetariánské Krokety', EL: 'Χορτοφαγικές Κροκέτες', TR: 'Vejetaryen Kroketler', AR: 'كروكيت نباتي', ZH: '素食可乐饼', JA: '野菜コロッケ',
-        KO: '채식 고로케', CA: 'Croquetes Veg.', EU: 'Kroket Begetarianoak', GL: 'Croquetas Veg.', VA: 'Croquetes Veg.'
-    },
-    { start: 12300, end: 12399,
+// NUEVO: títulos de los 4 grupos reales de la categoría 12 (Sugerencias del Chef), calcados
+// de la agrupación que ya usa el admin en sugerencias-print.js (procesarYRender): Entrantes
+// (12100-12399), Principales (12400-12899, incluye pasta/arroz/pescado/carne juntos), Postres
+// (12900-12999) y Bodega/Vino (excepción: solo el ID 12990, aunque cae dentro del rango
+// numérico de postres). Reutiliza traducciones ya existentes en categoriesList donde coinciden.
+const sugerenciasGroupTitles = {
+    entrantes: {
         ES: 'Entrantes', EN: 'Starters', DE: 'Vorspeisen', FR: 'Entrées', IT: 'Antipasti',
         RU: 'Закуски', NL: 'Voorgerechten', PL: 'Przystawki', SV: 'Förrätter', NO: 'Forretter',
         DA: 'Forretter', FI: 'Alkuruoat', PT: 'Entradas', RO: 'Gustări', HU: 'Előételek',
         CS: 'Předkrmy', EL: 'Ορεκτικά', TR: 'Başlangıçlar', AR: 'مقبلات', ZH: '前菜', JA: '前菜',
         KO: '에피타이저', CA: 'Entrants', EU: 'Hastekoak', GL: 'Entrantes', VA: 'Entrants'
     },
-    { start: 12400, end: 12499,
-        ES: 'Pasta', EN: 'Pasta', DE: 'Pasta', FR: 'Pâtes', IT: 'Pasta',
-        RU: 'Паста', NL: 'Pasta', PL: 'Makaron', SV: 'Pasta', NO: 'Pasta',
-        DA: 'Pasta', FI: 'Pasta', PT: 'Massa', RO: 'Paste', HU: 'Tészta',
-        CS: 'Těstoviny', EL: 'Ζυμαρικά', TR: 'Makarna', AR: 'باستا', ZH: '意大利面', JA: 'パスタ',
-        KO: '파스타', CA: 'Pasta', EU: 'Pasta', GL: 'Pasta', VA: 'Pasta'
+    principales: {
+        ES: 'Principales', EN: 'Mains', DE: 'Hauptspeisen', FR: 'Plats', IT: 'Piatti',
+        RU: 'Основные блюда', NL: 'Hoofdgerechten', PL: 'Dania główne', SV: 'Huvudrätter', NO: 'Hovedrätter',
+        DA: 'Hovedretter', FI: 'Pääruoat', PT: 'Pratos principales', RO: 'Feluri principale', HU: 'Főételek',
+        CS: 'Hlavní jídla', EL: 'Κυρίως Πιάτα', TR: 'Ana Yemekler', AR: 'أطباق رئيسية', ZH: '主菜', JA: 'メインディッシュ',
+        KO: '메인 요리', CA: 'Principals', EU: 'Plater Nagusiak', GL: 'Principais', VA: 'Principals'
     },
-    { start: 12500, end: 12599,
-        ES: 'Arroz', EN: 'Rice', DE: 'Reis', FR: 'Riz', IT: 'Riso',
-        RU: 'Рис', NL: 'Rijst', PL: 'Ryż', SV: 'Ris', NO: 'Ris',
-        DA: 'Ris', FI: 'Riisi', PT: 'Arroz', RO: 'Orez', HU: 'Rizs',
-        CS: 'Rýže', EL: 'Ρύζι', TR: 'Pilav', AR: 'أرز', ZH: '米饭', JA: 'ライス',
-        KO: '라이스', CA: 'Arròs', EU: 'Arroza', GL: 'Arroz', VA: 'Arròs'
-    },
-    { start: 12700, end: 12799,
-        ES: 'Pescado', EN: 'Fish', DE: 'Fisch', FR: 'Poisson', IT: 'Pesce',
-        RU: 'Рыба', NL: 'Vis', PL: 'Ryba', SV: 'Fisk', NO: 'Fisk',
-        DA: 'Fisk', FI: 'Kala', PT: 'Peixe', RO: 'Pește', HU: 'Hal',
-        CS: 'Ryba', EL: 'Ψάρι', TR: 'Balık', AR: 'سمك', ZH: '鱼类', JA: '魚料理',
-        KO: '생선', CA: 'Peix', EU: 'Arraina', GL: 'Peixe', VA: 'Peix'
-    },
-    { start: 12800, end: 12899,
-        ES: 'Carne', EN: 'Meat', DE: 'Fleisch', FR: 'Viande', IT: 'Carne',
-        RU: 'Мясо', NL: 'Vlees', PL: 'Mięso', SV: 'Kött', NO: 'Kjøtt',
-        DA: 'Kød', FI: 'Liha', PT: 'Carne', RO: 'Carne', HU: 'Hús',
-        CS: 'Maso', EL: 'Κρέας', TR: 'Et', AR: 'لحم', ZH: '肉类', JA: '肉料理',
-        KO: '고기', CA: 'Carn', EU: 'Haragia', GL: 'Carne', VA: 'Carn'
-    },
-    { start: 12900, end: 12999,
+    postres: {
         ES: 'Postres', EN: 'Desserts', DE: 'Desserts', FR: 'Desserts', IT: 'Dolci',
         RU: 'Десерты', NL: 'Desserts', PL: 'Desery', SV: 'Efterrätter', NO: 'Desesser',
         DA: 'Desesser', FI: 'Jälkiruoat', PT: 'Sobremesas', RO: 'Deserturi', HU: 'Desszertek',
         CS: 'Dezerty', EL: 'Επιδόρπια', TR: 'Tatlılar', AR: 'حلويات', ZH: '甜点', JA: 'デザート',
         KO: '디저트', CA: 'Postres', EU: 'Postreak', GL: 'Postres', VA: 'Postres'
+    },
+    vinos: {
+        ES: 'Vino', EN: 'Wine', DE: 'Wein', FR: 'Vin', IT: 'Vino',
+        RU: 'Вино', NL: 'Wijn', PL: 'Wino', SV: 'Vin', NO: 'Vin',
+        DA: 'Vin', FI: 'Viini', PT: 'Vinho', RO: 'Vin', HU: 'Bor',
+        CS: 'Víno', EL: 'Κρασί', TR: 'Şarap', AR: 'نبيذ', ZH: '葡萄酒', JA: 'ワイン',
+        KO: '와인', CA: 'Vi', EU: 'Ardoa', GL: 'Viño', VA: 'Vi'
     }
-];
+};
 
 async function init() { 
     try { 
@@ -551,25 +524,48 @@ function renderMenu() {
         return isItemInCategory(item.id, currentCat) && item.activa === 'SI' && (item.id % 1000 !== 0); 
     });
 
-    let currentActiveSubCatName = ""; 
-    filtered.forEach(item => { 
-        const idNum = parseInt(item.id); 
-        // MODIFICADO: antes solo los vinos (categoría 13) se agrupaban por subfamilia; ahora
-        // Sugerencias (categoría 12) usa el mismo mecanismo con sugerenciasSubCats.
-        const activeSubCats = currentCat.startsWith('13') ? wineSubCats : (currentCat === '12' ? sugerenciasSubCats : null);
-        if (activeSubCats) { 
-            const foundSub = activeSubCats.find(s => idNum >= s.start && idNum <= s.end); 
-            if (foundSub && grid) {
-                const subCatName = foundSub[currentLang] || foundSub['EN'] || foundSub['ES'];
-                const finalSubName = currentLang === 'ES' ? subCatName : `${subCatName} - ${foundSub['ES']}`;
-                if (finalSubName !== currentActiveSubCatName) { 
-                    grid.innerHTML += `<h3 class="sub-category-title">${finalSubName}</h3>`; 
-                    currentActiveSubCatName = finalSubName; 
+    if (currentCat === '12') {
+        // NUEVO: Sugerencias se agrupa en 4 bloques fijos, igual que hace el admin en
+        // sugerencias-print.js — NO por rango contiguo de ID como los vinos, porque el ID
+        // 12990 es una excepción de vino que cae numéricamente dentro del bloque de postres.
+        let entrantes = [], principales = [], postres = [], vinosSug = [];
+        filtered.forEach(item => {
+            const idNum = parseInt(item.id, 10);
+            if (idNum === 12990) vinosSug.push(item);
+            else if (idNum >= 12100 && idNum <= 12399) entrantes.push(item);
+            else if (idNum >= 12400 && idNum <= 12899) principales.push(item);
+            else if (idNum >= 12900 && idNum <= 12999) postres.push(item);
+            else entrantes.push(item);
+        });
+        const renderSugGroup = (titleObj, lista) => {
+            if (lista.length === 0 || !grid) return;
+            const catName = titleObj[currentLang] || titleObj['EN'] || titleObj['ES'];
+            const finalName = currentLang === 'ES' ? catName : `${catName} - ${titleObj['ES']}`;
+            grid.innerHTML += `<h3 class="sub-category-title">${finalName}</h3>`;
+            lista.forEach(p => { grid.innerHTML += generateItemHtml(p); });
+        };
+        renderSugGroup(sugerenciasGroupTitles.entrantes, entrantes);
+        renderSugGroup(sugerenciasGroupTitles.principales, principales);
+        renderSugGroup(sugerenciasGroupTitles.postres, postres);
+        renderSugGroup(sugerenciasGroupTitles.vinos, vinosSug);
+    } else {
+        let currentActiveSubCatName = "";
+        filtered.forEach(item => {
+            const idNum = parseInt(item.id);
+            if (currentCat.startsWith('13')) {
+                const foundSub = wineSubCats.find(s => idNum >= s.start && idNum <= s.end);
+                if (foundSub && grid) {
+                    const subCatName = foundSub[currentLang] || foundSub['EN'] || foundSub['ES'];
+                    const finalSubName = currentLang === 'ES' ? subCatName : `${subCatName} - ${foundSub['ES']}`;
+                    if (finalSubName !== currentActiveSubCatName) {
+                        grid.innerHTML += `<h3 class="sub-category-title">${finalSubName}</h3>`;
+                        currentActiveSubCatName = finalSubName;
+                    }
                 }
-            } 
-        } 
-        if (grid) grid.innerHTML += generateItemHtml(item); 
-    });
+            }
+            if (grid) grid.innerHTML += generateItemHtml(item);
+        });
+    }
 
     if (currentCat === '5') { 
         const guarnis = allData.filter(item => item.id.toString().startsWith('6') && item.id.toString().length === 4 && item.activa === 'SI'); 
