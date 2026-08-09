@@ -582,6 +582,11 @@ function renderMenu() {
     }
 }
 
+// NUEVO: helpers para pasar el JSON de info_* al onclick sin que ninguna comilla, apóstrofe
+// o barra invertida del texto pueda romper el HTML/JS generado (ver showInfoModal).
+function utf8ToB64(str) { return btoa(unescape(encodeURIComponent(str))); }
+function b64ToUtf8(str) { return decodeURIComponent(escape(atob(str))); }
+
 // MODIFICADO: Lógica para incluir el icono de información dinámico y el manejo del popup de preguntas/respuestas
 function generateItemHtml(item, isGuarni = false) { 
     const processName = (text) => { 
@@ -612,8 +617,13 @@ function generateItemHtml(item, isGuarni = false) {
     const infoKey = `info_${currentLang.toLowerCase()}`;
     const infoData = item[infoKey];
     if (infoData && infoData.trim() !== '') {
-        const escapedInfo = infoData.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-        const infoClickHandler = `event.stopPropagation(); showInfoModal('${escapedInfo}')`;
+        // CORREGIDO: antes se escapaban las comillas a mano (' -> \' , " -> &quot;), pero si el
+        // JSON ya traía una comilla interna escapada (\"), JS se comía la barra invertida al
+        // evaluar el string y dejaba una comilla suelta -> JSON.parse fallaba en silencio y el
+        // botón no hacía nada, solo en los platos cuyo texto llevaba una frase entrecomillada.
+        // Base64 no tiene ese problema: no contiene comillas, apóstrofes ni barras invertidas.
+        const b64Info = utf8ToB64(infoData);
+        const infoClickHandler = `event.stopPropagation(); showInfoModal('${b64Info}')`;
         infoIconHtml = `<span class="emoji-info" onclick="${infoClickHandler}" title="Info">ℹ️</span>`;
     }
 
@@ -755,9 +765,10 @@ function changePhoto(n) { currentPhotoIndex += n; updateModal(); }
 function closeModal() { const modal = document.getElementById('photo-modal'); if (modal) modal.style.display = 'none'; }
 
 // NUEVO: Funcionalidad para mostrar el modal de información con preguntas y respuestas del plato
-function showInfoModal(jsonStr) {
+function showInfoModal(b64Str) {
     let data;
     try { 
+        const jsonStr = b64ToUtf8(b64Str);
         data = JSON.parse(jsonStr); 
     } catch(e) { 
         console.error("Error al parsear info:", e); 
