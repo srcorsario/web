@@ -689,6 +689,14 @@ function generateItemHtml(item, isGuarni = false) {
         clickableStyle = 'style="cursor: pointer;"'; 
     }
 
+    // NUEVO: el plato ID 12990 (vino "El Tenista" en Sugerencias) muestra además una miniatura
+    // FIJA y siempre visible en la propia fila (no detrás de un clic, no sustituye el sistema
+    // de galería normal de arriba) — pequeña a propósito para no comerse la pantalla de
+    // Sugerencias. Ver CSS .tenista-inline-thumb.
+    const tenistaThumbHtml = (String(item.id) === '12990')
+        ? `<img src="imagenes/vinos/tenista_pegado.webp" class="tenista-inline-thumb" alt="">`
+        : '';
+
     // NUEVO: Comprobar si existe información para el idioma actual y generar el icono correspondiente
     let infoIconHtml = '';
     const infoKey = `info_${currentLang.toLowerCase()}`;
@@ -724,6 +732,7 @@ function generateItemHtml(item, isGuarni = false) {
             </span>` : ''} 
             <div class="alergenos-list">${alergenosHtml}</div> 
         </div> 
+        ${tenistaThumbHtml}
         <div class="price-box">${price}</div> 
     </div>`;
 }
