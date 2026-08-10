@@ -207,9 +207,9 @@ img.header-logo[src*="negro.png"] {
 /* NUEVO: miniatura fija y siempre visible para el plato especial ID 12990 (vino "El Tenista"
    en Sugerencias). A propósito pequeña — no debe "comerse" la pantalla de Sugerencias. */
 .tenista-inline-thumb {
-    width: 108px;
-    height: 108px;
-    object-fit: cover;
+    width: 150px;
+    height: auto;
+    object-fit: contain;
     border-radius: 10px;
     margin-left: 12px;
     flex-shrink: 0;
@@ -217,8 +217,8 @@ img.header-logo[src*="negro.png"] {
 }
 @media (max-width: 480px) {
     .tenista-inline-thumb {
-        width: 88px;
-        height: 88px;
+        width: 120px;
+        height: auto;
         border-radius: 8px;
     }
 }
