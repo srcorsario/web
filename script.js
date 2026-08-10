@@ -4,9 +4,19 @@
 // =========================================
 
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9rPlxpax2lE0rN97c6Hoy_OxUwREqRb48juEBr9C91ZFY2UvaKgC8JdiRcwDrtBErXFVmFRh0Zr5e/pub?gid=0&single=true&output=csv';
+// NUEVO: endpoint en vivo (Código.gs, ?accion=csv) para la carga por etapas/idioma — a
+// diferencia de CSV_URL (publicar en la web, cacheado por Google varios minutos), este
+// se puede pedir con &idiomas=xx para traer solo las columnas que hacen falta, y siempre
+// devuelve el contenido real de la hoja. CSV_URL se mantiene como último recurso si este
+// endpoint fallara (p.ej. problema de CORS puntual).
+const LIVE_CSV_ENDPOINT = 'https://script.google.com/macros/s/AKfycbwv3sbEI4MdrwE4x_EsQyAuVvIE7Oj2aXNLMDTsglqi91Zsug4ADN5o2N4F106VjeB0Qw/exec';
+// NUEVO: idiomas que se precargan en segundo plano justo después del primer render (además
+// del idioma del cliente, que siempre va primero). El resto de los 26 solo se piden bajo
+// demanda, cuando alguien los elige en el selector "Más...".
+const ESSENTIAL_LANGS = ['ES', 'EN', 'DE', 'FR', 'IT'];
 // NUEVO: Se registra la URL actualizada del App Script para las peticiones de sincronización del sistema
 const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw-600l4Z7_epEzVO8qvsnierOY4Ssk80QK-tFFw_Pp3-PbQS_thm9Jr3oRB9wWsOUNbg/exec';
-const APP_VERSION = 'v3.0.6'; 
+const APP_VERSION = 'v3.1.0'; 
 
 // MODIFICADO: Agregado Coreano (KO) con su respectivo emoji compatible
 const IDIOMAS = {
@@ -264,25 +274,64 @@ const sugerenciasGroupTitles = {
     }
 };
 
-async function init() { 
-    try { 
-        injectVisualIndicatorStyles(); 
+// REESCRITO: antes se descargaban las 26 columnas de nombre + info de golpe en un único
+// fetch (~470 KB con los datos actuales). Ahora se hace en 3 niveles de prioridad:
+//  1) Idioma del cliente (+ ES, que se usa siempre como referencia secundaria bajo el
+//     nombre principal) -> primer render lo antes posible.
+//  2) Los 5 idiomas esenciales (ES/EN/DE/FR/IT) -> se piden en segundo plano justo después,
+//     sin bloquear lo que ya se ve en pantalla.
+//  3) El resto de los 26 idiomas -> solo se piden bajo demanda, si alguien los elige en el
+//     selector "Más..." (ver changeLanguage).
+// Si el endpoint en vivo fallara por lo que sea, se cae automáticamente al CSV_URL de
+// siempre (con todas las columnas) para no dejar la web sin datos.
+async function init() {
+    try {
+        injectVisualIndicatorStyles();
         populateLanguageSelect();
 
-        const response = await fetch(CSV_URL); 
-        const csvText = await response.text(); 
-        allData = parseCSV(csvText); 
-         
-        if (allData.length > 0) { 
-            const userLang = (navigator.language || navigator.userLanguage).split('-')[0].toUpperCase();
-            currentLang = IDIOMAS[userLang] ? userLang : 'EN';
-             
-            renderCategories(); 
-            renderMenu(); 
+        const userLang = (navigator.language || navigator.userLanguage).split('-')[0].toUpperCase();
+        currentLang = IDIOMAS[userLang] ? userLang : 'EN';
+
+        const idiomasEtapa1 = Array.from(new Set([currentLang, 'ES']));
+
+        try {
+            allData = await fetchAndParseCsv(idiomasEtapa1);
+        } catch (e) {
+            console.warn('[Carga por etapas] Fallo en el endpoint en vivo, usando CSV completo de reserva:', e.message);
+            const response = await fetch(CSV_URL);
+            const csvText = await response.text();
+            allData = parseCSV(csvText);
+        }
+
+        if (allData.length > 0) {
+            renderCategories();
+            renderMenu();
             updateLanguageUI();
-            managePreload(); 
-            setupScrollListener(); 
-        } 
+            managePreload();
+            setupScrollListener();
+        }
+
+        // NUEVO: etapa 2 en segundo plano — no se espera ni bloquea el primer render.
+        const idiomasPendientesEsenciales = ESSENTIAL_LANGS.filter(l => !idiomasEtapa1.includes(l));
+        const etapa2 = idiomasPendientesEsenciales.length > 0
+            ? fetchAndParseCsv(idiomasPendientesEsenciales).then(items => mergeIntoAllData(items)).catch(e => console.warn('[Carga por etapas] No se pudieron precargar los idiomas esenciales restantes:', e.message))
+            : Promise.resolve();
+
+        // NUEVO: etapa 3 — el resto de los 26 idiomas, en segundo plano y SOLO después de que
+        // la etapa 2 termine (para no competir por ancho de banda con lo prioritario). Pesa
+        // poco por idioma (nombres cortos, sin INFO_* salvo en ES/EN), así que en conexiones
+        // normales no cuesta nada tenerlo ya listo si alguien acaba abriendo el selector
+        // "Más...". Si la conexión es lenta (Save-Data / 2G / 3G), se salta esta etapa.
+        etapa2.then(() => {
+            const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+            if (conn && (conn.saveData || /2g|3g/.test(conn.effectiveType || ''))) return;
+
+            const idiomasRestantes = Object.keys(IDIOMAS).filter(l => !idiomasEtapa1.includes(l) && !ESSENTIAL_LANGS.includes(l));
+            if (idiomasRestantes.length === 0) return;
+            fetchAndParseCsv(idiomasRestantes)
+                .then(items => mergeIntoAllData(items))
+                .catch(e => console.warn('[Carga por etapas] No se pudo precargar el resto de idiomas:', e.message));
+        });
     } catch (e) { console.error("Error en la inicialización:", e); }
 }
 
@@ -419,63 +468,91 @@ function updateLanguageUI() {
     }
 }
 
-function parseCSV(text) { 
-    const rows = []; 
-    const lines = text.split(/\r?\n(?=(?:(?:[^"]*"){2})*[^"]*$)/); 
-    for (let i = 1; i < lines.length; i++) { 
-        const col = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/); 
-        if (col.length < 11) continue; 
-        // MODIFICADO: además de quitar comillas envolventes, desescapamos las comillas dobles internas ("" -> ") que Google Sheets añade al exportar a CSV (necesario para que el JSON de las columnas info_ sea válido)
-        const clean = (val) => val ? val.replace(/^"|"$/g, '').replace(/""/g, '"').trim() : ""; 
-        
-        // MODIFICADO: Construimos el objeto base primero
-        const item = { 
-            id: clean(col[0]), 
-            precio: clean(col[1]).replace(',', '.'), 
-            activa: clean(col[2]).toUpperCase(), 
-            nombre_es: clean(col[3]), 
-            carpeta: clean(col[4]), 
-            archivo: clean(col[5]), 
-            alergenos: col[6] ? clean(col[6]).split(',').map(a => a.trim()).filter(a => a) : [], 
-            nombre_en: clean(col[7]), 
-            nombre_de: clean(col[8]), 
-            nombre_fr: clean(col[9]), 
-            nombre_it: clean(col[10]),
-            nombre_ru: col[11] ? clean(col[11]) : "",
-            nombre_nl: col[12] ? clean(col[12]) : "",
-            nombre_pl: col[13] ? clean(col[13]) : "",
-            nombre_sv: col[14] ? clean(col[14]) : "",
-            nombre_no: col[15] ? clean(col[15]) : "",
-            nombre_da: col[16] ? clean(col[16]) : "",
-            nombre_fi: col[17] ? clean(col[17]) : "",
-            nombre_pt: col[18] ? clean(col[18]) : "",
-            nombre_ro: col[19] ? clean(col[19]) : "",
-            nombre_hu: col[20] ? clean(col[20]) : "",
-            nombre_cs: col[21] ? clean(col[21]) : "",
-            nombre_el: col[22] ? clean(col[22]) : "",
-            nombre_tr: col[23] ? clean(col[23]) : "",
-            nombre_ar: col[24] ? clean(col[24]) : "",
-            nombre_zh: col[25] ? clean(col[25]) : "",
-            nombre_ja: col[26] ? clean(col[26]) : "",
-            nombre_ca: col[27] ? clean(col[27]) : "", 
-            nombre_eu: col[28] ? clean(col[28]) : "", 
-            nombre_gl: col[29] ? clean(col[29]) : "", 
-            nombre_va: col[30] ? clean(col[30]) : "",  
-            nombre_ko: col[31] ? clean(col[31]) : ""   
-        }; 
+// REESCRITO: antes leía por POSICIÓN fija de columna (col[0]..col[31], info a partir de la
+// 32 en orden alfabético fijo). Eso rompía en cuanto el CSV traía menos columnas (como los
+// que ahora sirve LIVE_CSV_ENDPOINT con &idiomas=). Ahora lee la fila de cabeceras y mapea
+// por NOMBRE, así funciona igual de bien con el CSV completo (26 idiomas) que con uno
+// parcial (p.ej. solo Nombre_KO/INFO_KO). Un nombre_xx / info_xx que no venga en este CSV se
+// deja "undefined" a propósito — así isLangLoaded() puede distinguir "aún no cargado" de
+// "cargado pero vacío".
+function parseCSV(text) {
+    const rows = [];
+    const lines = text.split(/\r?\n(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+    if (lines.length < 2) return rows;
 
-        // NUEVO: Extraer columnas info_ dinámicamente según su posición en el CSV
-        const infoLangs = ['ar', 'ca', 'cs', 'da', 'de', 'el', 'en', 'es', 'eu', 'fi', 'fr', 'gl', 'hu', 'it', 'ja', 'ko', 'nl', 'no', 'pl', 'pt', 'ro', 'ru', 'sv', 'tr', 'va', 'zh'];
-        infoLangs.forEach((lang, idx) => {
-            const colIndex = 32 + idx;
-            if (col[colIndex] !== undefined) {
-                item[`info_${lang}`] = clean(col[colIndex]);
+    const clean = (val) => val ? val.replace(/^"|"$/g, '').replace(/""/g, '"').trim() : "";
+
+    const headerCols = lines[0].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(h => clean(h).toUpperCase());
+    const idx = {};
+    headerCols.forEach((h, i) => { if (h) idx[h] = i; });
+    if (idx['ID'] === undefined) return rows;
+
+    for (let i = 1; i < lines.length; i++) {
+        const col = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+        const get = (headerName) => {
+            const colIdx = idx[headerName];
+            return (colIdx !== undefined && col[colIdx] !== undefined) ? clean(col[colIdx]) : undefined;
+        };
+
+        const idVal = get('ID');
+        if (!idVal) continue;
+
+        const item = {
+            id: idVal,
+            precio: (get('PRECIO') || '0').replace(',', '.'),
+            activa: (get('ACTIVA') || '').toUpperCase(),
+            carpeta: get('CARPETA') || '',
+            archivo: get('ARCHIVO_FOTO') || '',
+            alergenos: (() => { const a = get('ALERGENOS_COD'); return a ? a.split(',').map(x => x.trim()).filter(x => x) : []; })()
+        };
+
+        Object.keys(idx).forEach(h => {
+            if (h.indexOf('NOMBRE_') === 0) {
+                item[`nombre_${h.replace('NOMBRE_', '').toLowerCase()}`] = get(h) || '';
+            } else if (h.indexOf('INFO_') === 0) {
+                item[`info_${h.replace('INFO_', '').toLowerCase()}`] = get(h) || '';
             }
         });
 
-        rows.push(item); 
-    } 
+        rows.push(item);
+    }
     return rows;
+}
+
+// NUEVO: pide al endpoint en vivo solo las columnas de los idiomas indicados.
+async function fetchAndParseCsv(langs) {
+    const idiomasParam = langs.join(',');
+    const url = `${LIVE_CSV_ENDPOINT}?accion=csv&idiomas=${encodeURIComponent(idiomasParam)}&zx=${Date.now()}`;
+    const response = await fetch(url, { cache: 'no-store' });
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    const text = await response.text();
+    return parseCSV(text);
+}
+
+// NUEVO: mezcla un lote recién descargado (de un idioma o grupo de idiomas) en allData sin
+// pisar lo que ya hubiera de otros idiomas — busca por id y solo añade/actualiza las claves
+// nombre_*/info_* que traiga este lote.
+function mergeIntoAllData(newItems) {
+    const byId = {};
+    allData.forEach(it => { byId[it.id] = it; });
+    newItems.forEach(ni => {
+        const existente = byId[ni.id];
+        if (existente) {
+            Object.keys(ni).forEach(k => {
+                if (k.startsWith('nombre_') || k.startsWith('info_')) existente[k] = ni[k];
+            });
+        } else {
+            allData.push(ni);
+            byId[ni.id] = ni;
+        }
+    });
+}
+
+// NUEVO: ¿ya tenemos descargado el nombre de ese idioma para los platos? (undefined = nunca
+// se pidió esa columna todavía; '' = se pidió y está vacía, que es distinto).
+function isLangLoaded(lang) {
+    if (allData.length === 0) return false;
+    return allData[0][`nombre_${lang.toLowerCase()}`] !== undefined;
 }
 
 function isItemInCategory(itemId, catId) { 
@@ -659,22 +736,28 @@ function managePreload() {
 
     const sortedData = [...allData].sort((a, b) => parseInt(a.id) - parseInt(b.id));
 
-    const addCategoryByLevels = (items) => { 
+    // MODIFICADO: addCategoryByLevels admite ahora un nivel máximo de fotos a precargar por
+    // plato (antes siempre 4). Los vinos se quedan en 1 sola foto precargada por botella —
+    // mucha gente ni abre la galería de un vino, así que no vale la pena bajarse las 4 fotos
+    // de cada uno por adelantado; el resto (niveles 2-4) se sigue cargando bajo demanda al
+    // abrir la galería, como ya hacía antes para todo.
+    const addCategoryByLevels = (items, maxNivel = 4) => { 
         const bases = items.map(item => `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`); 
-        for (let level = 1; level <= 4; level++) { 
+        for (let level = 1; level <= maxNivel; level++) { 
             bases.forEach(base => { preloadQueue.push({ base, n: level }); }); 
         } 
     };
 
     const currentItems = sortedData.filter(i => isItemInCategory(i.id, currentCat) && i.archivo && i.activa === 'SI'); 
-    addCategoryByLevels(currentItems);
+    const esCategoriaVinos = currentCat && currentCat.toString().startsWith('13');
+    addCategoryByLevels(currentItems, esCategoriaVinos ? 1 : 4);
 
     const otherFoodItems = sortedData.filter(i => !isItemInCategory(i.id, currentCat) && parseInt(i.id) < 13000 && i.archivo && i.activa === 'SI'); 
     addCategoryByLevels(otherFoodItems);
 
-    if (currentCat && currentCat.toString().startsWith('13')) {
+    if (esCategoriaVinos) {
         const wineItems = sortedData.filter(i => !isItemInCategory(i.id, currentCat) && parseInt(i.id) >= 13000 && i.archivo && i.activa === 'SI'); 
-        addCategoryByLevels(wineItems);
+        addCategoryByLevels(wineItems, 1);
     }
 
     processPreloadQueue(mySession);
@@ -800,12 +883,30 @@ function closeInfoModal() {
     if (modal) modal.style.display = 'none';
 }
 
-function changeLanguage(l) { 
+// MODIFICADO: si el idioma elegido no es de los ya cargados (idioma del cliente, ES, o los
+// 5 esenciales), se pide bajo demanda al endpoint en vivo antes de renderizar. Muestra un
+// estado de "cargando" breve en el selector mientras llega.
+async function changeLanguage(l) {
     if (!l) return;
-    currentLang = l; 
-    updateLanguageUI(); 
-    renderCategories(); 
-    renderMenu(); 
+
+    if (!isLangLoaded(l)) {
+        const select = document.getElementById('more-langs');
+        if (select) select.disabled = true;
+        try {
+            const nuevosItems = await fetchAndParseCsv([l]);
+            mergeIntoAllData(nuevosItems);
+        } catch (e) {
+            console.error('Error cargando idioma bajo demanda:', e);
+            if (select) select.disabled = false;
+            return; // se queda en el idioma anterior si falla la descarga
+        }
+        if (select) select.disabled = false;
+    }
+
+    currentLang = l;
+    updateLanguageUI();
+    renderCategories();
+    renderMenu();
     managePreload();
 }
 
