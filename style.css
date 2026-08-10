@@ -332,7 +332,7 @@ img.header-logo[src*="negro.png"] {
     left: 0; 
     width: 100%; 
     height: 100%; 
-    background: rgba(0,0,0,0.9); 
+    background: rgba(255,255,255,0.97); 
     z-index: 2000; 
     justify-content: center; 
     align-items: center; 
@@ -342,16 +342,16 @@ img.header-logo[src*="negro.png"] {
     max-width: 90%; 
     max-height: 80%; 
     border-radius: 5px; 
-    box-shadow: 0 0 20px rgba(0,0,0,0.5); 
+    box-shadow: 0 0 20px rgba(0,0,0,0.15); 
 }
 
 .nav-btn { 
     position: absolute; 
     top: 50%; 
     transform: translateY(-50%); 
-    background: rgba(255,255,255,0.2); 
+    background: rgba(0,0,0,0.08); 
     border: none; 
-    color: white; 
+    color: #222; 
     font-size: 30px; 
     padding: 10px 15px; 
     border-radius: 50%; 
@@ -365,7 +365,7 @@ img.header-logo[src*="negro.png"] {
     position: absolute; 
     top: 20px; 
     right: 25px; 
-    color: white; 
+    color: #222; 
     font-size: 40px; 
     cursor: pointer; 
     line-height: 1; 
