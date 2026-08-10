@@ -694,7 +694,7 @@ function generateItemHtml(item, isGuarni = false) {
     // de galería normal de arriba) — pequeña a propósito para no comerse la pantalla de
     // Sugerencias. Ver CSS .tenista-inline-thumb.
     const tenistaThumbHtml = (String(item.id) === '12990')
-        ? `<img src="imagenes/vinos/tenista_pegado.webp" class="tenista-inline-thumb" alt="">`
+        ? `<img src="imagenes/vinos/tenista_pegado.webp" class="tenista-inline-thumb" alt="" onclick="event.stopPropagation(); openTenistaImageLarge()" style="cursor:pointer;">`
         : '';
 
     // NUEVO: Comprobar si existe información para el idioma actual y generar el icono correspondiente
@@ -807,6 +807,21 @@ async function processPreloadQueue(session) {
         verifiedImages[url] = success; 
     } 
     isPreloading = false;
+}
+
+// NUEVO: abre en grande la miniatura fija del plato ID 12990, reutilizando el mismo modal de
+// fotos (ya tiene un tamaño responsive estándar: max-width 90% / max-height 80% de la
+// pantalla, así en móvil se ajusta solo a un tamaño habitual sin desbordar). Es una sola foto,
+// así que se ocultan las flechas de siguiente/anterior.
+function openTenistaImageLarge() {
+    const img = document.getElementById('modal-img');
+    const prev = document.getElementById('prev-btn');
+    const next = document.getElementById('next-btn');
+    if (img) img.src = 'imagenes/vinos/tenista_pegado.webp';
+    if (prev) prev.style.display = 'none';
+    if (next) next.style.display = 'none';
+    const modal = document.getElementById('photo-modal');
+    if (modal) modal.style.display = 'flex';
 }
 
 async function openGallery(base) { 
