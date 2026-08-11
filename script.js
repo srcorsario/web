@@ -17,6 +17,12 @@ const ESSENTIAL_LANGS = ['ES', 'EN', 'DE', 'FR', 'IT'];
 // NUEVO: Se registra la URL actualizada del App Script para las peticiones de sincronización del sistema
 const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw-600l4Z7_epEzVO8qvsnierOY4Ssk80QK-tFFw_Pp3-PbQS_thm9Jr3oRB9wWsOUNbg/exec';
 const APP_VERSION = 'v3.1.0'; 
+// NUEVO: sello de caché para la imagen fija del vino "El Tenista" (imagenes/vinos/tenista_pegado.webp).
+// Se calcula una vez al cargar la página y se añade como ?v= a la URL de la imagen en los dos
+// sitios donde se usa, para que el navegador no siga sirviendo una copia cacheada antigua tras
+// reemplazar el archivo en GitHub (esta imagen se inserta dinámicamente por JS, y un Ctrl+F5 no
+// siempre invalida el caché de imágenes insertadas así).
+const TENISTA_IMG_CACHE_BUST = Date.now();
 
 // MODIFICADO: Agregado Coreano (KO) con su respectivo emoji compatible
 const IDIOMAS = {
@@ -693,8 +699,11 @@ function generateItemHtml(item, isGuarni = false) {
     // FIJA y siempre visible en la propia fila (no detrás de un clic, no sustituye el sistema
     // de galería normal de arriba) — pequeña a propósito para no comerse la pantalla de
     // Sugerencias. Ver CSS .tenista-inline-thumb.
+    // CORREGIDO: se añade ?v=timestamp a la URL para evitar que el navegador sirva una copia
+    // cacheada antigua de la imagen tras reemplazarla en GitHub (Ctrl+F5 no siempre invalida
+    // el caché de imágenes insertadas dinámicamente por JS).
     const tenistaThumbHtml = (String(item.id) === '12990')
-        ? `<div class="tenista-inline-thumb-wrapper"><img src="imagenes/vinos/tenista_pegado.webp" class="tenista-inline-thumb" alt="" onclick="event.stopPropagation(); openTenistaImageLarge()" style="cursor:pointer;"></div>`
+        ? `<div class="tenista-inline-thumb-wrapper"><img src="imagenes/vinos/tenista_pegado.webp?v=${TENISTA_IMG_CACHE_BUST}" class="tenista-inline-thumb" alt="" onclick="event.stopPropagation(); openTenistaImageLarge()" style="cursor:pointer;"></div>`
         : '';
 
     // NUEVO: Comprobar si existe información para el idioma actual y generar el icono correspondiente
@@ -817,7 +826,7 @@ function openTenistaImageLarge() {
     const img = document.getElementById('modal-img');
     const prev = document.getElementById('prev-btn');
     const next = document.getElementById('next-btn');
-    if (img) img.src = 'imagenes/vinos/tenista_pegado.webp';
+    if (img) img.src = 'imagenes/vinos/tenista_pegado.webp?v=' + TENISTA_IMG_CACHE_BUST;
     if (prev) prev.style.display = 'none';
     if (next) next.style.display = 'none';
     const modal = document.getElementById('photo-modal');
