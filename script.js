@@ -694,7 +694,7 @@ function generateItemHtml(item, isGuarni = false) {
     // de galería normal de arriba) — pequeña a propósito para no comerse la pantalla de
     // Sugerencias. Ver CSS .tenista-inline-thumb.
     const tenistaThumbHtml = (String(item.id) === '12990')
-        ? `<img src="imagenes/vinos/tenista_pegado.webp" class="tenista-inline-thumb" alt="" onclick="event.stopPropagation(); openTenistaImageLarge()" style="cursor:pointer;">`
+        ? `<div class="tenista-inline-thumb-wrapper"><img src="imagenes/vinos/tenista_pegado.webp" class="tenista-inline-thumb" alt="" onclick="event.stopPropagation(); openTenistaImageLarge()" style="cursor:pointer;"></div>`
         : '';
 
     // NUEVO: Comprobar si existe información para el idioma actual y generar el icono correspondiente
