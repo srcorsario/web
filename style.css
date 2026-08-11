@@ -175,6 +175,7 @@ img.header-logo[src*="negro.png"] {
 
 .item-row { 
     display: flex; 
+    flex-wrap: wrap; 
     justify-content: space-between; 
     align-items: flex-start; 
     padding: 15px 0; 
@@ -208,6 +209,7 @@ img.header-logo[src*="negro.png"] {
    en Sugerencias). A propósito pequeña — no debe "comerse" la pantalla de Sugerencias. */
 .tenista-inline-thumb {
     display: block;
+    flex: 0 0 100%;
     width: 150px;
     height: auto;
     object-fit: contain;
