@@ -270,6 +270,7 @@ img.header-logo[src*="negro.png"] {
 .info-modal-content {
     background: #fff;
     padding: 25px;
+    padding-top: 60px; /* NUEVO: espacio extra arriba para que el texto no quede tapado por el botón "×" (absolute, 40x40 en top:15px/right:20px) */
     border-radius: 12px;
     max-width: 500px;
     width: 90%;
@@ -449,6 +450,7 @@ img.header-logo[src*="negro.png"] {
         max-width: none;
         max-height: 88vh;
         padding: 22px 20px;
+        padding-top: 55px; /* NUEVO: mismo motivo que en desktop — aquí el botón queda en top:10px, 40px de alto */
     }
     .info-desc {
         font-size: 18px;
