@@ -731,9 +731,9 @@ function generateItemHtml(item, isGuarni = false) {
                 ${secondaryData.uvas ? `<br><small style="font-size:0.85em; opacity:0.8; font-style:italic;">${secondaryData.uvas}</small>` : ''} 
             </span>` : ''} 
             <div class="alergenos-list">${alergenosHtml}</div> 
-            ${tenistaThumbHtml}
         </div> 
         <div class="price-box">${price}</div> 
+        ${tenistaThumbHtml}
     </div>`;
 }
 
