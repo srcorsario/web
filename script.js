@@ -15,7 +15,7 @@ const LIVE_CSV_ENDPOINT = 'https://script.google.com/macros/s/AKfycbwv3sbEI4Mdrw
 // demanda, cuando alguien los elige en el selector "Más...".
 const ESSENTIAL_LANGS = ['ES', 'EN', 'DE', 'FR', 'IT'];
 // NUEVO: Se registra la URL actualizada del App Script para las peticiones de sincronización del sistema
-const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw-600l4Z7_epEzVO8qvsnierOY4Ssk80QK-tFFw_Pp3-PbQS_thm9Jr3oRB9wWsOUNbg/exec';
+const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxonK7Du4Dq11AU7s6rNjAVa1BD9Am72ORb-w2dmcojjGFWFHEZlCzxJNtoN3DLT81R0Q/exec';
 const APP_VERSION = 'v3.1.0'; 
 // NUEVO: sello de caché para la imagen fija del vino "El Tenista" (imagenes/vinos/tenista_pegado.webp).
 // Se calcula una vez al cargar la página y se añade como ?v= a la URL de la imagen en los dos
