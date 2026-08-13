@@ -9,7 +9,7 @@ const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9rPlxpax2lE0r
 // se puede pedir con &idiomas=xx para traer solo las columnas que hacen falta, y siempre
 // devuelve el contenido real de la hoja. CSV_URL se mantiene como último recurso si este
 // endpoint fallara (p.ej. problema de CORS puntual).
-const LIVE_CSV_ENDPOINT = 'https://script.google.com/macros/s/AKfycbwv3sbEI4MdrwE4x_EsQyAuVvIE7Oj2aXNLMDTsglqi91Zsug4ADN5o2N4F106VjeB0Qw/exec';
+const LIVE_CSV_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxonK7Du4Dq11AU7s6rNjAVa1BD9Am72ORb-w2dmcojjGFWFHEZlCzxJNtoN3DLT81R0Q/exec';
 // NUEVO: idiomas que se precargan en segundo plano justo después del primer render (además
 // del idioma del cliente, que siempre va primero). El resto de los 26 solo se piden bajo
 // demanda, cuando alguien los elige en el selector "Más...".
