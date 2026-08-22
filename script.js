@@ -16,7 +16,7 @@ const LIVE_CSV_ENDPOINT = 'https://script.google.com/macros/s/AKfycbx_9FjX_SrVG3
 const ESSENTIAL_LANGS = ['ES', 'EN', 'DE', 'FR', 'IT'];
 // NUEVO: Se registra la URL actualizada del App Script para las peticiones de sincronización del sistema
 const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx_9FjX_SrVG3uPxYRXNCHSuX2pE66m3BGfZ1rHJuMTWsgBkUbArs_Hid9UyGS5GbK3HQ/exec';
-const APP_VERSION = 'v3.1.0'; 
+const APP_VERSION = 'v3.2.0';
 // NUEVO: sello de caché para la imagen fija del vino "El Tenista" (imagenes/vinos/tenista_pegado.webp).
 // Se calcula una vez al cargar la página y se añade como ?v= a la URL de la imagen en los dos
 // sitios donde se usa, para que el navegador no siga sirviendo una copia cacheada antigua tras
@@ -46,6 +46,14 @@ const MENU_TEXTS = {
 };
 
 let allData = [];
+
+// NUEVO: además de pestañas completas, la hoja "Categorias" del backend también puede traer
+// dos interruptores GLOBALES para toda la web (no por sección): id "fotos" (icono 📸 de
+// galería, incluida la miniatura fija del vino "El Tenista") e id "info" (icono ℹ️ de
+// descripción/preguntas). Se leen y guardan con el mismo mecanismo que las pestañas
+// (fetchCategoriasDeshabilitadas), solo que generateItemHtml() los consulta directamente por
+// su id fijo en vez de por pestanaId.
+let idsGlobalesDesactivados = new Set();
 let currentLang = 'ES', currentCat = '12';
 let currentGalleryPath = '', currentPhotoIndex = 1, maxPhotosFound = 1;
 let verifiedImages = {}; 
@@ -346,6 +354,7 @@ async function init() {
         // (por defecto '12', o lo que haya dejado un checkUrlHash muy tempranero) apuntara
         // justo a la que se acaba de ocultar, se cae a la primera pestaña que quede.
         const categoriasDeshabilitadas = await categoriasPromise;
+        idsGlobalesDesactivados = categoriasDeshabilitadas; // NUEVO: fotos/info conviven en el mismo Set
         if (categoriasDeshabilitadas.size > 0) {
             categoriesList = categoriesList.filter(c => !categoriasDeshabilitadas.has(c.id));
             if (!categoriesList.some(c => c.id === currentCat)) {
@@ -732,11 +741,11 @@ function generateItemHtml(item, isGuarni = false) {
     let clickAction = ''; 
     let clickableStyle = '';
 
-    if (item.archivo && item.archivo.includes('01.webp')) { 
-        const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`; 
-        photoIcon = `<span class="emoji-photo">📸</span>`; 
-        clickAction = `onclick="openGallery('${base}')"`; 
-        clickableStyle = 'style="cursor: pointer;"'; 
+    if (!idsGlobalesDesactivados.has('fotos') && item.archivo && item.archivo.includes('01.webp')) {
+        const base = `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`;
+        photoIcon = `<span class="emoji-photo">📸</span>`;
+        clickAction = `onclick="openGallery('${base}')"`;
+        clickableStyle = 'style="cursor: pointer;"';
     }
 
     // NUEVO: el plato ID 12990 (vino "El Tenista" en Sugerencias) muestra además una miniatura
@@ -746,7 +755,7 @@ function generateItemHtml(item, isGuarni = false) {
     // CORREGIDO: se añade ?v=timestamp a la URL para evitar que el navegador sirva una copia
     // cacheada antigua de la imagen tras reemplazarla en GitHub (Ctrl+F5 no siempre invalida
     // el caché de imágenes insertadas dinámicamente por JS).
-    const tenistaThumbHtml = (String(item.id) === '12990')
+    const tenistaThumbHtml = (!idsGlobalesDesactivados.has('fotos') && String(item.id) === '12990')
         ? `<div class="tenista-inline-thumb-wrapper"><img src="imagenes/vinos/tenista_pegado.webp?v=${TENISTA_IMG_CACHE_BUST}" class="tenista-inline-thumb" alt="" onclick="event.stopPropagation(); openTenistaImageLarge()" style="cursor:pointer;"></div>`
         : '';
 
@@ -754,7 +763,7 @@ function generateItemHtml(item, isGuarni = false) {
     let infoIconHtml = '';
     const infoKey = `info_${currentLang.toLowerCase()}`;
     const infoData = item[infoKey];
-    if (infoData && infoData.trim() !== '') {
+    if (!idsGlobalesDesactivados.has('info') && infoData && infoData.trim() !== '') {
         // CORREGIDO: antes se escapaban las comillas a mano (' -> \' , " -> &quot;), pero si el
         // JSON ya traía una comilla interna escapada (\"), JS se comía la barra invertida al
         // evaluar el string y dejaba una comilla suelta -> JSON.parse fallaba en silencio y el
