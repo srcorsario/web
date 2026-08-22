@@ -16,7 +16,7 @@ const LIVE_CSV_ENDPOINT = 'https://script.google.com/macros/s/AKfycbx_9FjX_SrVG3
 const ESSENTIAL_LANGS = ['ES', 'EN', 'DE', 'FR', 'IT'];
 // NUEVO: Se registra la URL actualizada del App Script para las peticiones de sincronización del sistema
 const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx_9FjX_SrVG3uPxYRXNCHSuX2pE66m3BGfZ1rHJuMTWsgBkUbArs_Hid9UyGS5GbK3HQ/exec';
-const APP_VERSION = 'v3.2.0';
+const APP_VERSION = 'v3.3.0';
 // NUEVO: sello de caché para la imagen fija del vino "El Tenista" (imagenes/vinos/tenista_pegado.webp).
 // Se calcula una vez al cargar la página y se añade como ?v= a la URL de la imagen en los dos
 // sitios donde se usa, para que el navegador no siga sirviendo una copia cacheada antigua tras
@@ -807,29 +807,26 @@ function managePreload() {
 
     const sortedData = [...allData].sort((a, b) => parseInt(a.id) - parseInt(b.id));
 
-    // MODIFICADO: addCategoryByLevels admite ahora un nivel máximo de fotos a precargar por
-    // plato (antes siempre 4). Los vinos se quedan en 1 sola foto precargada por botella —
-    // mucha gente ni abre la galería de un vino, así que no vale la pena bajarse las 4 fotos
-    // de cada uno por adelantado; el resto (niveles 2-4) se sigue cargando bajo demanda al
-    // abrir la galería, como ya hacía antes para todo.
-    const addCategoryByLevels = (items, maxNivel = 4) => { 
-        const bases = items.map(item => `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`); 
-        for (let level = 1; level <= maxNivel; level++) { 
-            bases.forEach(base => { preloadQueue.push({ base, n: level }); }); 
-        } 
+    // MODIFICADO (22 agosto, optimización de carga inicial): dos cambios respecto a antes.
+    // (1) YA NO se precargan en segundo plano las fotos de TODAS las demás categorías (antes
+    // "otherFoodItems") — con ~130 fotos en el repo eso disparaba varios megas de descarga
+    // silenciosa justo tras el primer pintado aunque el usuario nunca llegara a abrir esas
+    // secciones; ahora solo se precarga la categoría que se está viendo, y el resto se precarga
+    // bajo demanda al cambiar de pestaña (filterCategory/changeLanguage ya llaman a
+    // managePreload() en ese momento). (2) el nivel por defecto baja de 4 a 2 fotos por plato —
+    // la mayoría no pasa de la 1ª/2ª foto de la galería; la 3ª y 4ª se comprueban bajo demanda
+    // al abrir la galería (openGallery ya prueba sobre la marcha lo que falte, sin bloquear la
+    // apertura). Los vinos se quedan igual que antes, en 1 sola foto precargada por botella.
+    const addCategoryByLevels = (items, maxNivel = 2) => {
+        const bases = items.map(item => `imagenes/${item.carpeta}/${item.archivo.split('01.webp')[0]}`);
+        for (let level = 1; level <= maxNivel; level++) {
+            bases.forEach(base => { preloadQueue.push({ base, n: level }); });
+        }
     };
 
-    const currentItems = sortedData.filter(i => isItemInCategory(i.id, currentCat) && i.archivo && i.activa === 'SI'); 
+    const currentItems = sortedData.filter(i => isItemInCategory(i.id, currentCat) && i.archivo && i.activa === 'SI');
     const esCategoriaVinos = currentCat && currentCat.toString().startsWith('13');
-    addCategoryByLevels(currentItems, esCategoriaVinos ? 1 : 4);
-
-    const otherFoodItems = sortedData.filter(i => !isItemInCategory(i.id, currentCat) && parseInt(i.id) < 13000 && i.archivo && i.activa === 'SI'); 
-    addCategoryByLevels(otherFoodItems);
-
-    if (esCategoriaVinos) {
-        const wineItems = sortedData.filter(i => !isItemInCategory(i.id, currentCat) && parseInt(i.id) >= 13000 && i.archivo && i.activa === 'SI'); 
-        addCategoryByLevels(wineItems, 1);
-    }
+    addCategoryByLevels(currentItems, esCategoriaVinos ? 1 : 2);
 
     processPreloadQueue(mySession);
 }
