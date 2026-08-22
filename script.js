@@ -9,13 +9,13 @@ const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9rPlxpax2lE0r
 // se puede pedir con &idiomas=xx para traer solo las columnas que hacen falta, y siempre
 // devuelve el contenido real de la hoja. CSV_URL se mantiene como último recurso si este
 // endpoint fallara (p.ej. problema de CORS puntual).
-const LIVE_CSV_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxonK7Du4Dq11AU7s6rNjAVa1BD9Am72ORb-w2dmcojjGFWFHEZlCzxJNtoN3DLT81R0Q/exec';
+const LIVE_CSV_ENDPOINT = 'https://script.google.com/macros/s/AKfycbx_9FjX_SrVG3uPxYRXNCHSuX2pE66m3BGfZ1rHJuMTWsgBkUbArs_Hid9UyGS5GbK3HQ/exec';
 // NUEVO: idiomas que se precargan en segundo plano justo después del primer render (además
 // del idioma del cliente, que siempre va primero). El resto de los 26 solo se piden bajo
 // demanda, cuando alguien los elige en el selector "Más...".
 const ESSENTIAL_LANGS = ['ES', 'EN', 'DE', 'FR', 'IT'];
 // NUEVO: Se registra la URL actualizada del App Script para las peticiones de sincronización del sistema
-const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxonK7Du4Dq11AU7s6rNjAVa1BD9Am72ORb-w2dmcojjGFWFHEZlCzxJNtoN3DLT81R0Q/exec';
+const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx_9FjX_SrVG3uPxYRXNCHSuX2pE66m3BGfZ1rHJuMTWsgBkUbArs_Hid9UyGS5GbK3HQ/exec';
 const APP_VERSION = 'v3.1.0'; 
 // NUEVO: sello de caché para la imagen fija del vino "El Tenista" (imagenes/vinos/tenista_pegado.webp).
 // Se calcula una vez al cargar la página y se añade como ?v= a la URL de la imagen en los dos
