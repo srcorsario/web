@@ -96,16 +96,8 @@ let categoriesList = [
         CS: 'Rýže a těstoviny', EL: 'Ρύζι & Ζυμαρικά', TR: 'Pilav & Makarna', AR: 'أرز وباستا', ZH: '米饭与面食', JA: 'ライス＆パスタ',
         KO: '라이스 & 파스타', CA: 'Arrossos i Pastes', EU: 'Arrozak eta Pastak', GL: 'Arroces e Pastas', VA: 'Arrossos i Pastes'
     }, 
-    { 
-        id: '4', 
-        ES: 'Recetas', EN: 'Recipes', DE: 'Rezepte', FR: 'Recettes', IT: 'Ricette',
-        RU: 'Рецепты', NL: 'Recepten', PL: 'Przepisy', SV: 'Recept', NO: 'Oppskrifter',
-        DA: 'Opskrifter', FI: 'Reseptit', PT: 'Receitas', RO: 'Rețete', HU: 'Receptek',
-        CS: 'Recepty', EL: 'Συνταγές', TR: 'Tarifler', AR: 'وصفات', ZH: '特色菜', JA: 'レシピ',
-        KO: '스페셜 요리', CA: 'Receptes', EU: 'Erreceptak', GL: 'Receitas', VA: 'Receptes'
-    }, 
-    { 
-        id: '5', 
+    {
+        id: '5',
         ES: 'Principales', EN: 'Mains', DE: 'Hauptspeisen', FR: 'Plats', IT: 'Piatti',
         RU: 'Основные блюда', NL: 'Hoofdgerechten', PL: 'Dania główne', SV: 'Huvudrätter', NO: 'Hovedrätter',
         DA: 'Hovedretter', FI: 'Pääruoat', PT: 'Pratos principales', RO: 'Feluri principale', HU: 'Főételek',
