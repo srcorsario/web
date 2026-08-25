@@ -14,6 +14,11 @@ const LIVE_CSV_ENDPOINT = 'https://script.google.com/macros/s/AKfycbx_9FjX_SrVG3
 // del idioma del cliente, que siempre va primero). El resto de los 26 solo se piden bajo
 // demanda, cuando alguien los elige en el selector "Más...".
 const ESSENTIAL_LANGS = ['ES', 'EN', 'DE', 'FR', 'IT'];
+// NUEVO: idiomas que se leen de derecha a izquierda. El árabe (y cualquier idioma RTL que se
+// añada en el futuro, p.ej. hebreo) necesita que toda la fila del plato se refleje (precio a
+// la izquierda, nombre/descripción pegados al margen derecho) en vez de quedar con
+// justificación izquierda como el resto de idiomas — ver updateLanguageUI().
+const RTL_LANGS = ['AR'];
 // NUEVO: Se registra la URL actualizada del App Script para las peticiones de sincronización del sistema
 const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx_9FjX_SrVG3uPxYRXNCHSuX2pE66m3BGfZ1rHJuMTWsgBkUbArs_Hid9UyGS5GbK3HQ/exec';
 const APP_VERSION = 'v3.4.0';
@@ -503,6 +508,14 @@ function populateLanguageSelect() {
 }
 
 function updateLanguageUI() {
+    // NUEVO: activa/desactiva la maquetación de derecha a izquierda según el idioma actual.
+    // Al ir en <html>, se hereda a toda la página (cabecera, pestañas de categorías, filas de
+    // platos y el modal de info incluidos) sin tener que tocar CSS de cada componente uno a
+    // uno: con dir="rtl" el texto se alinea a la derecha y flexbox invierte visualmente filas
+    // como .item-row (el precio pasa a la izquierda, el nombre queda pegado al margen derecho).
+    document.documentElement.dir = RTL_LANGS.includes(currentLang) ? 'rtl' : 'ltr';
+    document.documentElement.lang = currentLang.toLowerCase();
+
     const menuTitleEl = document.getElementById('header-menu-title');
     if (menuTitleEl) {
         menuTitleEl.textContent = MENU_TEXTS[currentLang] || MENU_TEXTS['ES'];
