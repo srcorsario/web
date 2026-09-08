@@ -125,11 +125,16 @@ header {
     vertical-align: middle;
 }
 
-/* MODIFICADO (8 septiembre): igualado a 56px, el mismo tamaño que el logo de la derecha
-   (negro.png), a petición del usuario -- antes eran 48px/56px. */
+/* MODIFICADO (8 septiembre): este logo también es un "lockup" (el escudo de Roland Garros +
+   la palabra "Restaurant" debajo, todo en el mismo PNG, con bastante margen alrededor) -- a
+   diferencia de negro.png (un icono suelto), aquí el escudo en sí solo ocupa una fracción de
+   la altura total de la imagen, así que a igual altura de <img> el escudo se ve más pequeño que
+   el toro. El usuario confirmó que prefiere mantener el logo completo (escudo+texto) y
+   simplemente agrandarlo, en vez de recortar el texto -- probado visualmente hasta que el
+   escudo se ve del mismo tamaño que el toro (56px). */
 img.header-logo[src*="logo RG_REST.png"] {
-    height: 56px;
-    max-height: 56px;
+    height: 90px;
+    max-height: 90px;
 }
 
 /* NUEVO: Estilo para el título centrado del menú en el header */
