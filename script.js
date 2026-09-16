@@ -9,7 +9,7 @@ const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9rPlxpax2lE0r
 // se puede pedir con &idiomas=xx para traer solo las columnas que hacen falta, y siempre
 // devuelve el contenido real de la hoja. CSV_URL se mantiene como último recurso si este
 // endpoint fallara (p.ej. problema de CORS puntual).
-const LIVE_CSV_ENDPOINT = 'https://script.google.com/macros/s/AKfycbzu2RyyNMhW9DdBFhmaUcYMqWgVinKmG1NfI9J57rXaw4uLxXs10p8ewUcmx3z0bT2v7A/exec';
+const LIVE_CSV_ENDPOINT = 'https://script.google.com/macros/s/AKfycbwe_6c4woiFXSp34fHgcky1uX-o_oCMQGRjYjmKeWgAbcgB-2sBmaNVgvS4wOI_aKSfYA/exec';
 // NUEVO: idiomas que se precargan en segundo plano justo después del primer render (además
 // del idioma del cliente, que siempre va primero). El resto de los 26 solo se piden bajo
 // demanda, cuando alguien los elige en el selector "Más...".
@@ -20,7 +20,7 @@ const ESSENTIAL_LANGS = ['ES', 'EN', 'DE', 'FR', 'IT'];
 // justificación izquierda como el resto de idiomas — ver updateLanguageUI().
 const RTL_LANGS = ['AR'];
 // NUEVO: Se registra la URL actualizada del App Script para las peticiones de sincronización del sistema
-const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzu2RyyNMhW9DdBFhmaUcYMqWgVinKmG1NfI9J57rXaw4uLxXs10p8ewUcmx3z0bT2v7A/exec';
+const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwe_6c4woiFXSp34fHgcky1uX-o_oCMQGRjYjmKeWgAbcgB-2sBmaNVgvS4wOI_aKSfYA/exec';
 const APP_VERSION = 'v3.7.1';
 // NUEVO (26 agosto, caché local + delta por hash): clave de localStorage donde se guarda la
 // última copia conocida de allData (más un sello de versión de la app) para poder pintar la
