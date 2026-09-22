@@ -9,7 +9,10 @@ const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9rPlxpax2lE0r
 // se puede pedir con &idiomas=xx para traer solo las columnas que hacen falta, y siempre
 // devuelve el contenido real de la hoja. CSV_URL se mantiene como último recurso si este
 // endpoint fallara (p.ej. problema de CORS puntual).
-const LIVE_CSV_ENDPOINT = 'https://script.google.com/macros/s/AKfycbwe_6c4woiFXSp34fHgcky1uX-o_oCMQGRjYjmKeWgAbcgB-2sBmaNVgvS4wOI_aKSfYA/exec';
+// ACTUALIZADO (22 sept): nueva implementación de Codigo_RG.gs (fix "se queda regenerando la
+// Info al tocar solo el precio" en el editor) -- la URL /exec cambió, sincronizada aquí con
+// config.js del editor y apps-script/urls.txt.
+const LIVE_CSV_ENDPOINT = 'https://script.google.com/macros/s/AKfycbyNgYSX6QyySV4JD2Uy2wx-n11fLhOhekHiZx--K1ORMEh0WgRPKn25ko51h0yl1xP7RA/exec';
 // NUEVO: idiomas que se precargan en segundo plano justo después del primer render (además
 // del idioma del cliente, que siempre va primero). El resto de los 26 solo se piden bajo
 // demanda, cuando alguien los elige en el selector "Más...".
@@ -20,8 +23,8 @@ const ESSENTIAL_LANGS = ['ES', 'EN', 'DE', 'FR', 'IT'];
 // justificación izquierda como el resto de idiomas — ver updateLanguageUI().
 const RTL_LANGS = ['AR'];
 // NUEVO: Se registra la URL actualizada del App Script para las peticiones de sincronización del sistema
-const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwe_6c4woiFXSp34fHgcky1uX-o_oCMQGRjYjmKeWgAbcgB-2sBmaNVgvS4wOI_aKSfYA/exec';
-const APP_VERSION = 'v3.7.1';
+const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyNgYSX6QyySV4JD2Uy2wx-n11fLhOhekHiZx--K1ORMEh0WgRPKn25ko51h0yl1xP7RA/exec';
+const APP_VERSION = 'v3.7.2';
 // NUEVO (26 agosto, caché local + delta por hash): clave de localStorage donde se guarda la
 // última copia conocida de allData (más un sello de versión de la app) para poder pintar la
 // web al instante en visitas recurrentes, sin esperar a ningún fetch. Ver leerCacheLocal /
