@@ -293,7 +293,10 @@ img.header-logo[src*="negro.png"] {
     object-fit: contain;
     border-radius: 10px;
 }
+/* NUEVO: Canonita a la MISMA altura que la botella de El Tenista (150px de ancho ≈ 182px de alto) */
+.tenista-inline-thumb.canonita-inline-thumb { width: auto; height: 182px; }
 @media (max-width: 480px) {
+    .tenista-inline-thumb.canonita-inline-thumb { width: auto; height: 145px; }
     .tenista-inline-thumb {
         width: 120px;
         height: auto;

@@ -41,6 +41,13 @@ const MENU_CACHE_KEY = 'rgMenuCacheV1';
 // reemplazar el archivo en GitHub (esta imagen se inserta dinámicamente por JS, y un Ctrl+F5 no
 // siempre invalida el caché de imágenes insertadas así).
 const TENISTA_IMG_CACHE_BUST = Date.now();
+// NUEVO: aperitivo Canonita ("Usopen Splitz", ID 12993). Va en el grupo de vinos/aperitivos
+// de Sugerencias y muestra miniatura fija como El Tenista.
+const APERITIVO_CANONITA_ID = 12993;
+const APERITIVO_CANONITA_IMG = 'imagenes/vinos/canonita.webp';
+function esAperitivoCanonita(item) {
+    return !!item && parseInt(item.id, 10) === APERITIVO_CANONITA_ID;
+}
 
 // MODIFICADO: Agregado Coreano (KO) con su respectivo emoji compatible
 const IDIOMAS = {
@@ -491,11 +498,11 @@ const sugerenciasGroupTitles = {
         KO: '디저트', CA: 'Postres', EU: 'Postreak', GL: 'Postres', VA: 'Postres'
     },
     vinos: {
-        ES: 'Vino', EN: 'Wine', DE: 'Wein', FR: 'Vin', IT: 'Vino',
-        RU: 'Вино', NL: 'Wijn', PL: 'Wino', SV: 'Vin', NO: 'Vin',
-        DA: 'Vin', FI: 'Viini', PT: 'Vinho', RO: 'Vin', HU: 'Bor',
-        CS: 'Víno', EL: 'Κρασί', TR: 'Şarap', AR: 'نبيذ', ZH: '葡萄酒', JA: 'ワイン',
-        KO: '와인', CA: 'Vi', EU: 'Ardoa', GL: 'Viño', VA: 'Vi'
+        ES: 'Vinos y aperitivos recomendados', EN: 'Recommended wines & aperitifs', DE: 'Empfohlene Weine & Aperitifs', FR: 'Vins et apéritifs recommandés', IT: 'Vini e aperitivi consigliati',
+        RU: 'Рекомендуемые вина и аперитивы', NL: 'Aanbevolen wijnen & aperitieven', PL: 'Polecane wina i aperitify', SV: 'Rekommenderade viner & aperitifer', NO: 'Anbefalte viner og aperitiffer',
+        DA: 'Anbefalede vine og aperitiffer', FI: 'Suositellut viinit ja aperitiivit', PT: 'Vinhos e aperitivos recomendados', RO: 'Vinuri și aperitive recomandate', HU: 'Ajánlott borok és aperitifek',
+        CS: 'Doporučená vína a aperitivy', EL: 'Προτεινόμενα κρασιά & απεριτίφ', TR: 'Önerilen şaraplar ve aperatifler', AR: 'نبيذ ومشروبات فاتحة للشهية موصى بها', ZH: '推荐葡萄酒与开胃酒', JA: 'おすすめのワインと食前酒',
+        KO: '추천 와인 & 아페리티프', CA: 'Vins i aperitius recomanats', EU: 'Gomendatutako ardoak eta aperitiboak', GL: 'Viños e aperitivos recomendados', VA: 'Vins i aperitius recomanats'
     }
 };
 
@@ -1198,7 +1205,7 @@ function renderMenu() {
         let entrantes = [], principales = [], postres = [], vinosSug = [];
         filtered.forEach(item => {
             const idNum = parseInt(item.id, 10);
-            if (idNum === 12990) vinosSug.push(item);
+            if (idNum === 12990 || esAperitivoCanonita(item)) vinosSug.push(item);
             else if (idNum >= 12100 && idNum <= 12399) entrantes.push(item);
             else if (idNum >= 12400 && idNum <= 12899) principales.push(item);
             else if (idNum >= 12900 && idNum <= 12999) postres.push(item);
@@ -1313,6 +1320,8 @@ function generateItemHtml(item, isGuarni = false) {
     // el caché de imágenes insertadas dinámicamente por JS).
     const tenistaThumbHtml = (!idsGlobalesDesactivados.has('fotos') && String(item.id) === '12990')
         ? `<div class="tenista-inline-thumb-wrapper"><img src="imagenes/vinos/tenista_pegado.webp?v=${TENISTA_IMG_CACHE_BUST}" class="tenista-inline-thumb" alt="" onclick="event.stopPropagation(); openTenistaImageLarge()" style="cursor:pointer;"></div>`
+        : (!idsGlobalesDesactivados.has('fotos') && esAperitivoCanonita(item))
+        ? `<div class="tenista-inline-thumb-wrapper"><img src="${APERITIVO_CANONITA_IMG}?v=${TENISTA_IMG_CACHE_BUST}" class="tenista-inline-thumb canonita-inline-thumb" alt="" onclick="event.stopPropagation(); openTenistaImageLarge('${APERITIVO_CANONITA_IMG}')" style="cursor:pointer;"></div>`
         : '';
 
     // NUEVO: Comprobar si existe información para el idioma actual y generar el icono correspondiente
@@ -1438,11 +1447,11 @@ async function processPreloadQueue(session) {
 // fotos (ya tiene un tamaño responsive estándar: max-width 90% / max-height 80% de la
 // pantalla, así en móvil se ajusta solo a un tamaño habitual sin desbordar). Es una sola foto,
 // así que se ocultan las flechas de siguiente/anterior.
-function openTenistaImageLarge() {
+function openTenistaImageLarge(src) {
     const img = document.getElementById('modal-img');
     const prev = document.getElementById('prev-btn');
     const next = document.getElementById('next-btn');
-    if (img) img.src = 'imagenes/vinos/tenista_pegado.webp?v=' + TENISTA_IMG_CACHE_BUST;
+    if (img) img.src = (src || 'imagenes/vinos/tenista_pegado.webp') + '?v=' + TENISTA_IMG_CACHE_BUST;
     if (prev) prev.style.display = 'none';
     if (next) next.style.display = 'none';
     const modal = document.getElementById('photo-modal');
