@@ -658,3 +658,73 @@ img.header-logo[src*="negro.png"] {
         right: 12px;
     }
 }
+
+/* =========================================================
+   ORDENADOR / PANTALLAS GRANDES (añadido 1 noviembre):
+   la carta se ensancha y todo el texto crece con la pantalla.
+   ========================================================= */
+@media (min-width: 900px) {
+    .header-logos,
+    #language-selector,
+    .category-wrapper,
+    #menu-container { max-width: 900px; }
+
+    header { padding: 14px 24px 10px; }
+    img.header-logo[src*="logo RG_REST.png"] { height: 110px; max-height: 110px; }
+    img.header-logo[src*="negro.png"] { height: 68px; max-height: 68px; }
+    #header-menu-title { font-size: 30px; }
+
+    #language-selector { gap: 4px 14px; padding-bottom: 8px; }
+    #language-selector button,
+    #more-langs { font-size: 14px; padding: 8px 10px; }
+
+    #category-selector { gap: 10px; }
+    .cat-btn { font-size: 16px; padding: 10px 22px; }
+
+    #menu-container { padding: 28px 32px 80px; }
+    #current-category-name { font-size: 46px; margin: 18px 0 30px; padding-bottom: 20px; }
+    #current-category-name::after { width: 80px; }
+
+    .sub-category-title { font-size: 15px; margin-top: 46px; }
+
+    .item-row { padding: 22px 0; }
+    .name-selected { font-size: 26px; }
+    .name-secondary { font-size: 20px; }
+    .price-box { font-size: 26px; margin-left: 28px; }
+    .emoji-photo, .emoji-info { font-size: 21px; margin-left: 8px; }
+    .alergenos-list { gap: 10px; margin-top: 12px; }
+    .alergenos-list img { width: 28px; height: 28px; }
+
+    .tenista-inline-thumb { width: 190px; }
+    .tenista-inline-thumb.canonita-inline-thumb { height: 230px; }
+
+    .alergeno-info-row img { width: 40px; height: 40px; }
+    .alergeno-info-row span { font-size: 23px; }
+    .alergenos-page-aviso { font-size: 16px; max-width: 720px; }
+
+    .info-modal-content { max-width: 640px; padding: 34px; padding-top: 70px; }
+    .info-desc { font-size: 22px; }
+    .info-qa { font-size: 17px; }
+}
+
+@media (min-width: 1500px) {
+    .header-logos,
+    #language-selector,
+    .category-wrapper,
+    #menu-container { max-width: 1080px; }
+
+    img.header-logo[src*="logo RG_REST.png"] { height: 125px; max-height: 125px; }
+    img.header-logo[src*="negro.png"] { height: 78px; max-height: 78px; }
+    #header-menu-title { font-size: 34px; }
+    #language-selector button,
+    #more-langs { font-size: 15px; }
+    .cat-btn { font-size: 17px; padding: 11px 24px; }
+
+    #current-category-name { font-size: 54px; }
+    .sub-category-title { font-size: 16px; }
+    .name-selected { font-size: 30px; }
+    .name-secondary { font-size: 22px; }
+    .price-box { font-size: 30px; }
+    .emoji-photo, .emoji-info { font-size: 23px; }
+    .alergenos-list img { width: 32px; height: 32px; }
+}
