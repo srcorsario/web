@@ -26,7 +26,7 @@ const ESSENTIAL_LANGS = ['ES', 'EN', 'DE', 'FR', 'IT'];
 const RTL_LANGS = ['AR'];
 // NUEVO: Se registra la URL actualizada del App Script para las peticiones de sincronización del sistema
 const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz6mX3oj9_-Kd-BiREXq318PPx3MeI8rdg4d8bFWuE6W7QhTih3rcgYOqExcFGgpD3YaA/exec';
-const APP_VERSION = 'v3.7.4';
+const APP_VERSION = 'v3.7.5';
 // NUEVO (26 agosto, caché local + delta por hash): clave de localStorage donde se guarda la
 // última copia conocida de allData (más un sello de versión de la app) para poder pintar la
 // web al instante en visitas recurrentes, sin esperar a ningún fetch. Ver leerCacheLocal /
@@ -1205,7 +1205,10 @@ function renderMenu() {
         let entrantes = [], principales = [], postres = [], vinosSug = [];
         filtered.forEach(item => {
             const idNum = parseInt(item.id, 10);
-            if (idNum === 12990 || esAperitivoCanonita(item)) vinosSug.push(item);
+            // MODIFICADO (1 noviembre): todo el tramo 12990-12999 es Vinos/Aperitivos (El Tenista,
+            // Quibia, 12 Volts, Canonita...). Antes solo 12990 y 12993 eran excepción y el resto de
+            // vinos (p. ej. 12992 "12 Volts") caía en Postres. Postres = 12900-12989.
+            if ((idNum >= 12990 && idNum <= 12999) || esAperitivoCanonita(item)) vinosSug.push(item);
             else if (idNum >= 12100 && idNum <= 12399) entrantes.push(item);
             else if (idNum >= 12400 && idNum <= 12899) principales.push(item);
             else if (idNum >= 12900 && idNum <= 12999) postres.push(item);
